@@ -40,7 +40,7 @@ int main() {
     const char *body = mrb_string_value_ptr(mrb, body_output);
     addstr(body);
     // 画面を表示するために入力待ちにする
-    //input = getch();
+    input = getch();
     endwin();
 
     mrb_close(mrb);
