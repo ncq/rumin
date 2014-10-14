@@ -19,7 +19,7 @@ int main() {
 
     mrb_state* mrb = mrb_open();
     // mrubyファイルをロードする
-    FILE *f = fopen("src/caller.rb", "r");
+    FILE *f = fopen("mruby/caller.rb", "r");
 
     //mrb_load_irep_file(mrb, f);
     mrb_load_file(mrb, f);
