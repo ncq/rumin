@@ -1,7 +1,7 @@
 class Caller
   attr_accessor :str1, :str2
 
-  def initialize
+  def initialize(arg1, arg2)
     @str1 = "baz"
     @str2 = "bar"
   end
