@@ -15,7 +15,8 @@ int main() {
     cbreak();
 
     // キーボード入力受け付け
-    getstr(buf);
+    //getstr(buf);
+
 
     mrb_state *mrb = mrb_open();
     // mrubyファイルをロードする
@@ -33,14 +34,18 @@ int main() {
     // Caller#newを呼び出す
     mrb_value call = mrb_funcall(mrb, caller_value, "new", 0);
 
-    // 入力値の格納（アクセサメソッドを実行）
-    mrb_funcall(mrb, call, "body=", 1, body_input);
-    // 入力値の取得（アクセサメソッドを実行）
-    mrb_value body_output = mrb_funcall(mrb, call, "body", 0);
-    const char *body = mrb_string_value_ptr(mrb, body_output);
-    addstr(body);
-    // 画面を表示するために入力待ちにする
-    input = getch();
+    while(getch() != 'q'){
+        // キーボード入力受け付け
+        getstr(buf);
+
+        // 入力値の格納（アクセサメソッドを実行）
+        mrb_funcall(mrb, call, "body=", 1, body_input);
+        // 入力値の取得（アクセサメソッドを実行）
+        mrb_value body_output = mrb_funcall(mrb, call, "body", 0);
+        const char *body = mrb_string_value_ptr(mrb, body_output);
+        addstr(body);
+    }
+
     endwin();
 
     mrb_close(mrb);
