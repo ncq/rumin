@@ -46,7 +46,6 @@ int main() {
         mrb_value body_output = mrb_funcall(mrb, call, "body", 0);
         const char *body = mrb_string_value_ptr(mrb, body_output);
         addstr(body);
-        if (getch() == 'q') break;
     }
 
     endwin();
