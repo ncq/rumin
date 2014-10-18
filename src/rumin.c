@@ -22,12 +22,12 @@ int main() {
 
     mrb_state *mrb = mrb_open();
     // mrubyファイルをロードする
-    FILE *f = fopen("mruby/caller.rb", "r");
+    FILE *f = fopen("mruby/Init.rb", "r");
     //mrb_load_irep_file(mrb, f);
     mrb_load_file(mrb, f);
 
     // クラスオブジェクトを取得する
-    struct RClass *caller = mrb_class_get(mrb, "Caller");
+    struct RClass *caller = mrb_class_get(mrb, "Init");
 
     // 引数をmrb_valueに変換する
     mrb_value caller_value = mrb_obj_value(caller);
