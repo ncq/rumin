@@ -7,6 +7,7 @@ task :all => ["build"]
 task :default => ["build"]
 
 task :build => "rumin" do
+	sh "cp -r mruby #{BUILD_DIR}/mruby"
 	puts "done."
 end
 
