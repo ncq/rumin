@@ -1,6 +1,6 @@
 C_COMPILER = "clang"
 TARGET = "rumin"
-TARGET_DIR = "build"
+BUILD_DIR = "build"
 INC_DIR = "runtime/mruby/include"
 
 task :all => ["build"]
@@ -12,12 +12,12 @@ end
 
 task :clean do
 	puts "cleaning."
-	sh "rm -fr build"
+	sh "rm -fr #{BUILD_DIR}"
 end
 
 file "rumin" => ["src/rumin.c"] do |t|
 	puts "building."
-	sh "mkdir build"
-	sh "gcc -Iruntime/mruby/include -Iruntime/mruby/src src/rumin.c runtime/mruby/build/host/lib/libmruby.a -lm -lncurses -o #{TARGET_DIR}/#{TARGET}"
+	sh "mkdir #{BUILD_DIR}"
+	sh "#{C_COMPILER} -Iruntime/mruby/include src/rumin.c runtime/mruby/build/host/lib/libmruby.a -lm -lncurses -o #{BUILD_DIR}/#{TARGET}"
 end
 
