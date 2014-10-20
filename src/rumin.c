@@ -1,15 +1,20 @@
 #include <ncurses.h>
 #define BUFFSIZE 100
 #include <locale.h>
+#include <stdlib.h>
+
 
 #include "mruby.h"
 #include "mruby/proc.h"
 #include "mruby/compile.h"
 #include "mruby/string.h"
 
+void redisplay(mrb_state *mrb, mrb_value buffer);
+void evaluate(mrb_state *mrb, mrb_value command, mrb_value key, mrb_value buffer);
+
 int main() {
     char buf[BUFFSIZE];
-    int input;
+    int key;
 
     //日本語
     setlocale(LC_ALL,"");
@@ -17,12 +22,13 @@ int main() {
     initscr();
     cbreak();
     //noecho();
-    // キーボード入力受け付け
-    //getstr(buf);
+
+    //TRUEだと特殊生ーを押した時にキーコードを返す。FALSEだとエスケープシーケンス
+    //keypad(stdscr, TRUE);
 
     mrb_state *mrb = mrb_open();
     // mrubyファイルをロードする
-    FILE *f = fopen("mruby/Init.rb", "r");
+    FILE *f = fopen("mruby/init.rb", "r");
     //mrb_load_irep_file(mrb, f);
     mrb_load_file(mrb, f);
 
@@ -32,20 +38,20 @@ int main() {
     // 引数をmrb_valueに変換する
     mrb_value caller_value = mrb_obj_value(caller);
 
-    // Caller#newを呼び出す
+    // Init#newを呼び出す
     mrb_value call = mrb_funcall(mrb, caller_value, "new", 0);
 
-    while(1){
-        // キーボード入力受け付け
-        getstr(buf);
-        mrb_value body_input = mrb_str_new(mrb, buf, strlen(buf));
+    struct RClass *buffer = mrb_class_get(mrb, "Buffer");
+    mrb_value buffer_instance = mrb_funcall(mrb, mrb_obj_value(buffer), "new", 0);
 
-        // 入力値の格納（アクセサメソッドを実行）
-        mrb_funcall(mrb, call, "body=", 1, body_input);
-        // 入力値の取得（アクセサメソッドを実行）
-        mrb_value body_output = mrb_funcall(mrb, call, "body", 0);
-        const char *body = mrb_string_value_ptr(mrb, body_output);
-        addstr(body);
+    struct RClass *command = mrb_class_get(mrb, "Command");
+    mrb_value command_instance = mrb_funcall(mrb, mrb_obj_value(command), "new", 0);
+        
+    while(1){
+        key = getch();
+        mrb_value input_key = mrb_fixnum_value(key);
+        evaluate(mrb, command_instance, input_key, buffer_instance);
+        redisplay(mrb, buffer_instance);
     }
 
     endwin();
@@ -53,4 +59,14 @@ int main() {
     mrb_close(mrb);
 
     return 0;
+}
+
+void redisplay(mrb_state *mrb, mrb_value buffer){
+    mrb_value buffer_output = mrb_funcall(mrb, buffer, "get_buffer", 0);
+    const char *body = mrb_string_value_ptr(mrb, buffer_output);
+    addstr(body);
+}
+
+void evaluate(mrb_state *mrb, mrb_value command, mrb_value key, mrb_value buffer){
+    mrb_funcall(mrb, command, "evaluate", 2, key, buffer);
 }
