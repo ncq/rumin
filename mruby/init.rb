@@ -4,11 +4,11 @@ end
 
 class Buffer
   def initialize
-    @contents = ["dog", "cat", "fish"]
+    @contents = []
   end
 
   def get_buffer
-    @contents.join("\n")
+    @contents.join
   end
 
   def add_string(str)
@@ -17,19 +17,8 @@ class Buffer
 end
 
 class Command
-  def initialize
-    
-  end
-
   def evaluate(input, buffer)
-    buffer.add_string(input)
+    buffer.add_string(input.chr)
   end
 end
-
-
-bu = Buffer.new
-p bu.get_buffer
-co = Command.new
-p co.evaluate(27, bu)
-p bu.get_buffer
 

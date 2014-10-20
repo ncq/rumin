@@ -21,7 +21,7 @@ int main() {
     // curses初期化
     initscr();
     cbreak();
-    //noecho();
+    noecho();
 
     //TRUEだと特殊生ーを押した時にキーコードを返す。FALSEだとエスケープシーケンス
     //keypad(stdscr, TRUE);
@@ -62,6 +62,7 @@ int main() {
 }
 
 void redisplay(mrb_state *mrb, mrb_value buffer){
+    clear();
     mrb_value buffer_output = mrb_funcall(mrb, buffer, "get_buffer", 0);
     const char *body = mrb_string_value_ptr(mrb, buffer_output);
     addstr(body);
