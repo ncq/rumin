@@ -83,6 +83,9 @@ MRuby::Build.new do |conf|
 
   # bintest
   # conf.enable_bintest
+
+  # mruby-require must be the last mrbgem specified in the build configuration.
+  conf.gem :github => 'mattn/mruby-require'
 end
 
 # Define cross build settings
