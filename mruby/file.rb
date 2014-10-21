@@ -8,17 +8,22 @@ class RuminFile
 		@last_modified = @file.mtime
 	end
 
-	# TODO
 	def write buff
-		puts buff
+		if @last_modified != @file.mtime then
+			raise "conflicted with other process."
+		end
+		@file.write buff
+		@file.fsync
 		@last_modified = @file.mtime
 	end
 
-	# TODO
 	def read
-		puts "read."
-		if @last_modified != @file.mtime then
-			puts "changed."
-		end
+		@file.fsync
+		@file.rewind
+		lines = @file.readlines
+	end
+
+	def close
+		@file.close
 	end
 end
