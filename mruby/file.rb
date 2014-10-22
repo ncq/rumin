@@ -1,29 +1,23 @@
 class RuminFile
-	@file
-	attr_reader :file_name, :last_modified
+	attr_reader :path, :file_name, :last_modified
 
-	def initialize path, mode
-		@file = File.open path, mode
-		@file_name = @file.path
-		@last_modified = @file.mtime
+	def initialize path
+		@path = File.expand_path path
+		file = File.open @path, "r"
+		@file_name = File.basename @path
+		@last_modified = file.mtime
+		file.close
 	end
 
 	def write buff
-		if @last_modified != @file.mtime then
-			raise "conflicted with other process."
-		end
-		@file.write buff
-		@file.fsync
-		@last_modified = @file.mtime
+		file = File.open path, "w"
+		file.write buff
+		@last_modified = file.mtime
+		file.close
 	end
 
 	def read
-		@file.fsync
-		@file.rewind
-		lines = @file.readlines
-	end
-
-	def close
-		@file.close
+		file = File.open @path, "r"
+		file.readlines
 	end
 end
