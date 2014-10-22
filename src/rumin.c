@@ -7,13 +7,14 @@
 #include "mruby/proc.h"
 #include "mruby/compile.h"
 #include "mruby/string.h"
+#include "mruby/array.h"
 
+void input_key(mrb_state *mrb, mrb_value keys);
+void evaluate(mrb_state *mrb, mrb_value command, mrb_value keys, mrb_value buffer);
 void redisplay(mrb_state *mrb, mrb_value buffer);
-void evaluate(mrb_state *mrb, mrb_value command, mrb_value key, mrb_value buffer);
 
 int main() {
     char buf[BUFFSIZE];
-    int key;
 
     //日本語
     setlocale(LC_ALL,"");
@@ -53,10 +54,10 @@ int main() {
     mrb_value command_value = mrb_obj_value(command);
     mrb_value command_instance = mrb_funcall(mrb, command_value, "new", 0);
 
+    mrb_value keys = mrb_ary_new(mrb);
     while(1) {
-        key = getch();
-        mrb_value input_key = mrb_fixnum_value(key);
-        evaluate(mrb, command_instance, input_key, buffer_instance);
+        input_key(mrb, keys);
+        evaluate(mrb, command_instance, keys, buffer_instance);
         redisplay(mrb, buffer_instance);
     }
 
@@ -67,13 +68,33 @@ int main() {
     return 0;
 }
 
+void input_key(mrb_state *mrb, mrb_value keys){
+    int key;
+    key = getch();
+    mrb_ary_clear(mrb, keys);
+    mrb_ary_push(mrb, keys, mrb_fixnum_value(key));
+    if(key >= 192 && key <= 223) {
+        // 2 bytes
+        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
+    } else if(key >= 224 && key <= 239) {
+        // 3 bytes
+        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
+        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
+    } else if(key >= 240 && key <= 255) {
+        // 4 bytes
+        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
+        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
+        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
+    }
+}
+
+void evaluate(mrb_state *mrb, mrb_value command, mrb_value keys, mrb_value buffer){
+    mrb_funcall(mrb, command, "evaluate", 2, keys, buffer);
+}
+
 void redisplay(mrb_state *mrb, mrb_value buffer){
     clear();
     mrb_value buffer_output = mrb_funcall(mrb, buffer, "get_content", 0);
     const char *body = mrb_string_value_ptr(mrb, buffer_output);
     addstr(body);
-}
-
-void evaluate(mrb_state *mrb, mrb_value command, mrb_value key, mrb_value buffer){
-    mrb_funcall(mrb, command, "evaluate", 2, key, buffer);
 }

@@ -20,6 +20,7 @@ MRuby::Build.new do |conf|
   # conf.gem :git => 'git@github.com:masuidrive/mrbgems-example.git', :branch => 'master', :options => '-v'
   conf.gem :core => 'mruby-eval'
   conf.gem :git => 'git@github.com:iij/mruby-io.git', :branch => 'master', :options => '-v'
+  conf.gem 'mrbgems/mruby-string-utf8'
 
   # include the default GEMs
   conf.gembox 'default'

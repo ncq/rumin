@@ -79,7 +79,7 @@ class ContentArray < Content
     return if count > 0
     return if (row + count) < 0
     merge_line = @content[(row + count + 1), count.abs].join("")
-    @content[row + count] = @content[row + count] + merge_line
+    @content[row + count] << merge_line
     content_1 = @content[0, (row + count + 1)]
     content_2 = @content[(row + 1), (@content.size - content_1.size + count)]
     @content = content_1 + content_2
