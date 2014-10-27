@@ -2,6 +2,7 @@ class Buffer
   require './mruby/point'
   require './mruby/content'
   require './mruby/content_array'
+  require './mruby/cursor'
 
   attr_accessor :name, :is_modified
   attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point
@@ -11,9 +12,18 @@ class Buffer
     # @contentのデータ構造を切り替えやすいように別クラスにしておく
     @content = ContentArray.new
     @point = Point.new
+    @cursor = Cursor.new
     @is_modified = false
     @num_chars = 0
     @num_lines = 1
+  end
+
+  def get_cursor_row
+    @cursor.row
+  end
+
+  def get_cursor_col
+    @cursor.col
   end
 
   def get_char
@@ -58,12 +68,28 @@ class Buffer
   end
 
   def move_point(count = 1)
-    # 移動先に文字がなければ行の末尾に移動する
-    col  = @point.col + count
-    line = @content.get_line(@point.row)
-    return @point.col if (col < 0 || col > line.length)
+    # 移動先に文字がない場合は移動しない
+    col_p = @point.col + count
+    line  = @content.get_line(@point.row)
+    return @point.col if (col_p < 0 || col_p > line.length)
     @point.move_point(count)
-    col
+    col_c = @content.convert_point_to_cursor(@point.row, @point.col)
+    @cursor.set_position(@point.row, col_c)
+    col_p
+  end
+
+  def move_line(count = 1)
+    # 文字がなければ移動しない
+    row = @point.row + count
+    return @point.row if (row < 0 || row > (@content.rows - 1))
+    # 行を移動した先に文字がなければ位置を行の末尾に変更
+    line   = @content.get_line(row)
+    length = line.nil? ? 0 : line.length
+    # 半角文字と全角文字の差分を調整
+    cursor_col = @content.adjust_cursor_col(row, @cursor.col)
+    @cursor.set_position(row, cursor_col)
+    @point.set_point(row, @content.convert_cursor_to_point(row, length, cursor_col))
+    row
   end
 
   def add_line()
@@ -76,6 +102,7 @@ class Buffer
   def change_line()
     @content.change_line(@point.row, @point.col)
     @point.set_point((@point.row + 1), 0)
+    @cursor.set_position(@point.row, @point.col)
     @num_lines += 1
   end
 
@@ -121,7 +148,9 @@ class Buffer
     col = @content.get_line(@point.row + count).length
     @content.merge_line(count, @point.row)
     @point.set_point((@point.row + count), col)
+    @cursor.set_position((@cursor.row + count), @content.convert_point_to_cursor(@point.row, col))
     @is_modified = true
     true
   end
+
 end

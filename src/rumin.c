@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include <locale.h>
 #include <stdlib.h>
+#include <dlfcn.h>
 #define BUFFSIZE 100
 
 #include "mruby.h"
@@ -73,7 +74,11 @@ void input_key(mrb_state *mrb, mrb_value keys){
     key = getch();
     mrb_ary_clear(mrb, keys);
     mrb_ary_push(mrb, keys, mrb_fixnum_value(key));
-    if(key >= 192 && key <= 223) {
+    if(key == 27) {
+        // arrow key
+        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
+        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
+    } else if(key >= 192 && key <= 223) {
         // 2 bytes
         mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
     } else if(key >= 224 && key <= 239) {
@@ -97,4 +102,7 @@ void redisplay(mrb_state *mrb, mrb_value buffer){
     mrb_value buffer_output = mrb_funcall(mrb, buffer, "get_content", 0);
     const char *body = mrb_string_value_ptr(mrb, buffer_output);
     addstr(body);
+    mrb_value row = mrb_funcall(mrb, buffer, "get_cursor_row", 0);
+    mrb_value col = mrb_funcall(mrb, buffer, "get_cursor_col", 0);
+    move(mrb_fixnum(row), mrb_fixnum(col));
 }
