@@ -20,6 +20,7 @@ MRuby::Build.new do |conf|
   # conf.gem :git => 'git@github.com:masuidrive/mrbgems-example.git', :branch => 'master', :options => '-v'
   conf.gem :core => 'mruby-eval'
   conf.gem :git => 'git@github.com:iij/mruby-io.git', :branch => 'master', :options => '-v'
+  conf.gem 'mrbgems/mruby-string-utf8'
 
   # include the default GEMs
   conf.gembox 'default'
@@ -83,6 +84,9 @@ MRuby::Build.new do |conf|
 
   # bintest
   # conf.enable_bintest
+
+  # mruby-require must be the last mrbgem specified in the build configuration.
+  conf.gem :github => 'mattn/mruby-require'
 end
 
 # Define cross build settings
