@@ -2,27 +2,31 @@
 class Command
   require './mruby/utf8_util'
 
+  # TODO: 上坂くんと連携
+  def keymap
+    {
+      'up' => 'BufferCommand::up(buffer)',
+      'down' => 'BufferCommand::down(buffer)',
+      'left' => 'BufferCommand::left(buffer)',
+      'right' => 'BufferCommand::right(buffer)',
+      10 => "BufferCommand::change_line(buffer)", # enter
+      127 => "BufferCommand::buffer_delete(buffer)", # delete
+      8 => "BufferCommand::buffer_del2(buffer)", # C-h
+    }
+  end
+
   def evaluate(inputs, buffer)
+    `echo #{inputs} >> shibata.log`
+
     # 矢印キーはutf8ではないかも
     if arrow?(inputs)
       input = arrow_vector(inputs)
     else
       input = Utf8Util::convert_utf_code(inputs)
     end
-    if input == 'up'
-      buffer.move_line(-1)
-    elsif input == 'down'
-      buffer.move_line(1)
-    elsif input == 'left'
-      buffer.move_point(-1)
-    elsif input == 'right'
-      buffer.move_point(1)
-    elsif input == 10
-      # enter key
-      buffer.change_line
-    elsif input == 127
-      # delete key
-      buffer.delete(-1);
+
+    if keymap.key?(input)
+      eval keymap[input]
     else
       # input character
       buffer.insert_char(input.chr)
@@ -30,39 +34,24 @@ class Command
   end
 
 
-  # class << self
-  #   # commnad配下まとめてrequire
-  #   def load_command
-  #     # TODO: ファイルからのパスにする
-  #     path = './mruby/command/'
-  #     # plugins配下をrequire
-  #     Dir.foreach(path) do |file|
-  #       if file =~ /\.rb\z/ then
-  #         require path + file
-  #       end
-  #     end
-  #   end
-  # end
+  class << self
+    # commnad配下まとめてrequire
+    def load_command
+      # TODO: 再帰的に
+      paths = ['./mruby/command/', './mruby/command/plugin/']
+      paths.each do |path|
+        # plugins配下をrequire
+        Dir.foreach(path) do |file|
+          if file =~ /\.rb\z/
+            require path + file
+          end
+        end
+      end
+    end
 
-  # TODO: DSLで
-  # def keymap
-  #   {
-  #     10 => "BufferCommand::change_line(buffer)", # enter
-  #   }
-  # end
-
-  # def evaluate(inputs, buffer)
-  #   `echo #{inputs} >> shibata.log`
-  #   input = convert_utf_code(inputs)
-
-  #   if keymap.key?(input)
-  #     eval keymap[input]
-  #   else
-  #     # input character
-  #     buffer.insert_char(input.chr)
-  #   end
-  # end
-
+    def require_if_rb
+    end
+  end
 
   def arrow?(inputs)
     # 矢印キーはutf8のコード体系と違う
@@ -118,4 +107,4 @@ class Command
 end
 
 # TODO: initへ移行
-# Command.load_command
+Command.load_command

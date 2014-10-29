@@ -30,6 +30,17 @@ class CommandTest < MTest::Unit::TestCase
     assert_equal(nil, command.arrow_vector([1, 91, 65], true))
     assert_equal(nil, command.arrow_vector([27, 91, 1], false))
   end
+
+  def test_load_command_success
+    Command.load_command
+    assert !require('./mruby/command/buffer_command.rb')
+    assert !require('./mruby/command/plugin/delete_command.rb')
+  end
+
+  def test_evaluate_success
+  end
+
+
 end
 
 MTest::Unit.new.run
