@@ -5,7 +5,7 @@ class Buffer
   require './mruby/cursor'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor
   def initialize(name)
     @name = name
     # @contentはとりあえず一次元配列(より良い構造を考える)
@@ -61,6 +61,8 @@ class Buffer
     else
       delete_char(count)
     end
+    # TODO:num_charsを更新していない
+    # TODO:num_linesを更新していない
   end
 
   def modified?
@@ -92,13 +94,6 @@ class Buffer
     row
   end
 
-  def add_line()
-    # 実際は改行コードが入ったときに呼び出す
-    @content.add_line
-    @point.set_point((@point.row + 1), 0)
-    @num_lines += 1
-  end
-
   def change_line()
     @content.change_line(@point.row, @point.col)
     @point.set_point((@point.row + 1), 0)
@@ -107,25 +102,21 @@ class Buffer
   end
 
   def delete_line()
+    # TODO: move cursor
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length
     @content.delete_line(@point.row)
     if @content.rows == 0
-      row = 0
-      col = 0
+      @point.set_point(0, 0)
+      @cursor.set_position(0, 0)
     else
-      row      = @point.row
-      row      = (@content.rows - 1) if @content.get_line(@point.row).nil?
-      col      = @point.col
-      new_line = @content.get_line(row)
-      if new_line.nil?
-        col = 0
+      if @point.row >= @content.rows
+        move_line(-1)
       else
-        col = new_line.length if new_line[col].nil?
+        move_line(0)
       end
     end
-    @point.set_point(row, col)
-    @num_lines -= 1
+    @num_lines -= 1 if @num_lines > 1
     @num_chars -= old_length
     true
   end

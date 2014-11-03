@@ -22,3 +22,8 @@ file "rumin" => ["src/rumin.c"] do |t|
 	sh "#{C_COMPILER} -Iruntime/mruby/include src/rumin.c runtime/mruby/build/host/lib/libmruby.a -lm -lncurses -o #{BUILD_DIR}/#{TARGET}"
 end
 
+task :mtest do
+  FileList["test/**/*_test.rb"].each do |i|
+    sh "./run/bin/mruby #{i}"
+  end
+end

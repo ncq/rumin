@@ -1,4 +1,5 @@
 require './mruby/content'
+require './mruby/utf8_util'
 class ContentArray < Content
   attr_reader :content
 
@@ -13,10 +14,13 @@ class ContentArray < Content
   end
 
   def get_char(row, col)
+    return nil if @content[row].nil?
     @content[row][col]
   end
 
   def get_string(row, col, count)
+    return nil if count == 0
+    return nil if @content[row].nil?
     @content[row][col, count]
   end
 
@@ -30,30 +34,36 @@ class ContentArray < Content
 
   def insert_char(char, row, col)
     line = add_multi_char(char, row, col)
+    return nil if line.nil?
     @content[row] = line
     line
   end
 
   def insert_string(str, row, col)
     line = add_multi_char(str, row, col)
+    return nil if line.nil?
     @content[row] = line
-  end
-
-  def add_line(row)
-    @content[(row + 1), 0] = ''
+    line
   end
 
   def change_line(row, col)
     line   = get_line(row)
+    return false if line.nil?
+    return false if col > line.length
     line1 = line[0, col]
     line2 = line[col, (line.length - col)]
     @content[row] = line1
     @content[(row + 1), 0] = line2
+    true
   end
 
   def delete_line(row)
-    @content.slice!(row)
+    return false if row > @content.size
+    line1 = @content[0, row]
+    line2 = @content[(row + 1), (@content.size - row - 1)]
+    @content = line1 + line2
     @content = [''] if @content.size == 0
+    true
   end
 
   def to_string
@@ -61,9 +71,11 @@ class ContentArray < Content
   end
 
   def delete_char(count, row, col)
+    return nil if count == 0
+    return nil if row > @content.size
     line = get_line(row)
     # 0より小さくなる場合は0になるように補正する
-    if (col < 0 && (col + count) < 0)
+    if (count < 0 && (col + count) < 0)
       count = col * -1
     end
     line_1 = line[0, col]
@@ -91,27 +103,31 @@ class ContentArray < Content
 
   def convert_point_to_cursor(row, col)
     converter = create_point_cursor_converter(row, col, true)
+    return nil if converter.nil?
     converter[col]
   end
 
   def convert_cursor_to_point(row, col, cursor_col)
     converter = create_point_cursor_converter(row, col, false)
+    return nil if converter.nil?
     converter[cursor_col]
   end
 
   def adjust_cursor_col(row, col)
-    line      = get_line(row)
-    len       = line.length
+    line = get_line(row)
+    return 0 if line.nil?
+    len  = line.length
     return 0 if len == 0
     converter = create_point_cursor_converter(row, len, true)
     return (converter[len - 1] + 1) if col > converter[len - 1]
-    # returnがないとエラーになるので
     return converter.include?(col) ? col : col - 1
   end
 
   private
   def add_multi_char(str, row, col)
     line   = get_line(row)
+    return nil if line.nil?
+    return nil if col > line.length
     line_1 = line[0, col]
     line_2 = line[col, (line.length - col)]
     line   = line_1 + str + line_2
@@ -121,7 +137,9 @@ class ContentArray < Content
     converter = []
     line = get_line(row)
     cur  = 0
+    return nil if line.nil?
     for i in 0...col do
+      return nil if line[i].nil?
       if to_cursor
         converter[i] = cur
       else
