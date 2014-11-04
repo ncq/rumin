@@ -12,10 +12,10 @@ class Utf8UtilTest < MTest::Unit::TestCase
     assert_equal(266305, Utf8Util::convert_utf_code([241, 129, 129, 129]))
   end
 
-  def test_multibyte?
-    assert_equal(false, Utf8Util::multibyte?('a'))
-    assert_equal(true, Utf8Util::multibyte?('あ'))
-    assert_equal(false, Utf8Util::multibyte?('ｱ'))
+  def test_full_width?
+    assert_equal(false, Utf8Util::full_width?('a'))
+    assert_equal(true, Utf8Util::full_width?('あ'))
+    assert_equal(false, Utf8Util::full_width?('ｱ'))
   end
 end
 

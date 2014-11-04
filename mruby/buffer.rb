@@ -8,8 +8,8 @@ class Buffer
   attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor
   def initialize(name)
     @name = name
-    # @contentはとりあえず一次元配列(より良い構造を考える)
-    # @contentのデータ構造を切り替えやすいように別クラスにしておく
+    # TODO:want to better content structure
+    # switch ContentArray class
     @content = ContentArray.new
     @point = Point.new
     @cursor = Cursor.new
@@ -61,8 +61,6 @@ class Buffer
     else
       delete_char(count)
     end
-    # TODO:num_charsを更新していない
-    # TODO:num_linesを更新していない
   end
 
   def modified?
@@ -70,7 +68,7 @@ class Buffer
   end
 
   def move_point(count = 1)
-    # 移動先に文字がない場合は移動しない
+    # not move if string not exist at destination
     col_p = @point.col + count
     line  = @content.get_line(@point.row)
     return @point.col if (col_p < 0 || col_p > line.length)
@@ -81,13 +79,13 @@ class Buffer
   end
 
   def move_line(count = 1)
-    # 文字がなければ移動しない
+    # not move if string not exist at destination
     row = @point.row + count
     return @point.row if (row < 0 || row > (@content.rows - 1))
-    # 行を移動した先に文字がなければ位置を行の末尾に変更
+    # move to line's last if row is bigger than line length
     line   = @content.get_line(row)
     length = line.nil? ? 0 : line.length
-    # 半角文字と全角文字の差分を調整
+    # adjust difference between half-byte and full-byte
     cursor_col = @content.adjust_cursor_col(row, @cursor.col)
     @cursor.set_position(row, cursor_col)
     @point.set_point(row, @content.convert_cursor_to_point(row, length, cursor_col))
@@ -102,7 +100,6 @@ class Buffer
   end
 
   def delete_line()
-    # TODO: move cursor
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length
     @content.delete_line(@point.row)
@@ -121,7 +118,7 @@ class Buffer
     true
   end
 
-  # private
+  private
   def delete_char(count)
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length

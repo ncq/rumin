@@ -145,7 +145,7 @@ class ContentArray < Content
       else
         converter[cur] = i
       end
-      if Utf8Util::multibyte?(line[i])
+      if Utf8Util::full_width?(line[i])
         cur += 2
       else
         cur += 1

@@ -7,7 +7,9 @@ class RuminFileTest < MTest::Unit::TestCase
   def test_initialize
     file = RuminFile.new(@@test_path)
     assert_equal(@@test_file, file.file_name)
-    assert_not_equal(nil, file.last_modified)
+    path = File.expand_path(@@test_path)
+    stat = File::Stat.new(path)
+    assert_equal(stat.mtime, file.last_modified)
   end
 
   def test_read
@@ -19,7 +21,9 @@ class RuminFileTest < MTest::Unit::TestCase
     file = RuminFile.new(@@test_path)
     file.write("test2\n")
     assert_equal(["test2\n"], file.read)
-    assert_not_equal(nil, file.last_modified)
+    path = File.expand_path(@@test_path)
+    stat = File::Stat.new(path)
+    assert_equal(stat.mtime, file.last_modified)
   end
 
   def teardown
