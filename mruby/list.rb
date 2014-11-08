@@ -1,4 +1,4 @@
-class InteractiveLinkedList
+class LinkedList
   class Item
     attr_accessor :prev, :content, :next
 
