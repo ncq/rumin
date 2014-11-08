@@ -92,3 +92,4 @@ void redisplay(mrb_state *mrb, mrb_value rumin){
     mrb_value col = mrb_funcall(mrb, buffer, "get_cursor_col", 0);
     move(mrb_fixnum(row), mrb_fixnum(col));
 }
+
