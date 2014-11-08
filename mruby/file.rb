@@ -4,20 +4,24 @@ class RuminFile
 	def initialize path
 		@path = File.expand_path path
 		file = File.open @path, "r"
+		stat = File::Stat.new(@path)
 		@file_name = File.basename @path
-		@last_modified = file.mtime
+		@last_modified = stat.mtime
 		file.close
 	end
 
 	def write buff
-		file = File.open path, "w"
+		file = File.open @path, "w"
 		file.write buff
-		@last_modified = file.mtime
+		stat = File::Stat.new(@path)
+		@last_modified = stat.mtime
 		file.close
 	end
 
 	def read
-		file = File.open @path, "r"
-		file.readlines
+		file    = File.open @path, "r"
+		content = file.readlines
+		file.close
+		content
 	end
 end
