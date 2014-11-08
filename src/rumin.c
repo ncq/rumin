@@ -31,35 +31,21 @@ int main() {
 
     // Initインスタンスの作成
     // mrubyファイルのロード
-    FILE *f1 = fopen("mruby/init.rb", "r");
+    FILE *f1 = fopen("mruby/rumin.rb", "r");
     // mrb_load_irep_file(mrb, f1);
     mrb_load_file(mrb, f1);
     // クラスオブジェクトを取得する
-    struct RClass *init = mrb_class_get(mrb, "Init");
+    struct RClass *rumin = mrb_class_get(mrb, "Rumin");
     // 引数をmrb_valueに変換する
-    mrb_value init_value = mrb_obj_value(init);
-    // Init#newを呼び出す
-    mrb_value init_instance = mrb_funcall(mrb, init_value, "new", 0);
-
-    // Bufferインスタンスの初期化
-    FILE *f2 = fopen("mruby/buffer.rb", "r");
-    mrb_load_file(mrb, f2);
-    struct RClass *buffer = mrb_class_get(mrb, "Buffer");
-    mrb_value buffer_value = mrb_obj_value(buffer);
-    mrb_value buffer_instance = mrb_funcall(mrb, buffer_value, "new", 1, "1");
-
-    // Commandインスタンスの初期化
-    FILE *f3 = fopen("mruby/command.rb", "r");
-    mrb_load_file(mrb, f3);
-    struct RClass *command = mrb_class_get(mrb, "Command");
-    mrb_value command_value = mrb_obj_value(command);
-    mrb_value command_instance = mrb_funcall(mrb, command_value, "new", 0);
+    mrb_value rumin_value = mrb_obj_value(rumin);
+    // Rumin#newを呼び出す
+    mrb_value rumin_instance = mrb_funcall(mrb, rumin_value, "new", 0);
 
     mrb_value keys = mrb_ary_new(mrb);
     while(1) {
         input_key(mrb, keys);
-        evaluate(mrb, command_instance, keys, buffer_instance);
-        redisplay(mrb, buffer_instance);
+        evaluate(mrb, rumin_instance, keys);
+        redisplay(mrb, rumin_instance);
     }
 
     endwin();
@@ -93,11 +79,11 @@ void input_key(mrb_state *mrb, mrb_value keys){
     }
 }
 
-void evaluate(mrb_state *mrb, mrb_value command, mrb_value keys, mrb_value buffer){
-    mrb_funcall(mrb, command, "evaluate", 2, keys, buffer);
+void evaluate(mrb_state *mrb, mrb_value rumin, mrb_value keys){
+    mrb_funcall(mrb, rumin, "evaluate", 1, keys);
 }
 
-void redisplay(mrb_state *mrb, mrb_value buffer){
+void redisplay(mrb_state *mrb, mrb_value rumin){
     clear();
     mrb_value buffer_output = mrb_funcall(mrb, buffer, "get_content", 0);
     const char *body = mrb_string_value_ptr(mrb, buffer_output);

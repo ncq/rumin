@@ -1,4 +1,4 @@
-class PointTest < MTest::Unit::TestCase
+class BufferTest < MTest::Unit::TestCase
   require './mruby/buffer'
 
   def test_initialize
