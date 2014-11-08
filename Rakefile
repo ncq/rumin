@@ -19,6 +19,6 @@ end
 file "rumin" => ["src/rumin.c"] do |t|
 	puts "building."
 	sh "mkdir #{BUILD_DIR}"
-	sh "#{C_COMPILER} -Iruntime/mruby/include src/rumin.c runtime/mruby/build/host/lib/libmruby.a -lm -lncurses -o #{BUILD_DIR}/#{TARGET}"
+	sh "#{C_COMPILER} -Iruntime/mruby/include src/rumin.c runtime/mruby/build/host/lib/libmruby.a -lm -lncursesw -ldl -o #{BUILD_DIR}/#{TARGET}"
 end
 
