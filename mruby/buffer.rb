@@ -5,11 +5,11 @@ class Buffer
   require './mruby/cursor'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor
   def initialize(name)
     @name = name
-    # @contentはとりあえず一次元配列(より良い構造を考える)
-    # @contentのデータ構造を切り替えやすいように別クラスにしておく
+    # TODO:want to better content structure
+    # switch ContentArray class
     @content = ContentArray.new
     @point = Point.new
     @cursor = Cursor.new
@@ -68,7 +68,7 @@ class Buffer
   end
 
   def move_point(count = 1)
-    # 移動先に文字がない場合は移動しない
+    # not move if string not exist at destination
     col_p = @point.col + count
     line  = @content.get_line(@point.row)
     return @point.col if (col_p < 0 || col_p > line.length)
@@ -79,24 +79,17 @@ class Buffer
   end
 
   def move_line(count = 1)
-    # 文字がなければ移動しない
+    # not move if string not exist at destination
     row = @point.row + count
     return @point.row if (row < 0 || row > (@content.rows - 1))
-    # 行を移動した先に文字がなければ位置を行の末尾に変更
+    # move to line's last if row is bigger than line length
     line   = @content.get_line(row)
     length = line.nil? ? 0 : line.length
-    # 半角文字と全角文字の差分を調整
+    # adjust difference between half-byte and full-byte
     cursor_col = @content.adjust_cursor_col(row, @cursor.col)
     @cursor.set_position(row, cursor_col)
     @point.set_point(row, @content.convert_cursor_to_point(row, length, cursor_col))
     row
-  end
-
-  def add_line()
-    # 実際は改行コードが入ったときに呼び出す
-    @content.add_line
-    @point.set_point((@point.row + 1), 0)
-    @num_lines += 1
   end
 
   def change_line()
@@ -111,26 +104,21 @@ class Buffer
     old_length = old_line.length
     @content.delete_line(@point.row)
     if @content.rows == 0
-      row = 0
-      col = 0
+      @point.set_point(0, 0)
+      @cursor.set_position(0, 0)
     else
-      row      = @point.row
-      row      = (@content.rows - 1) if @content.get_line(@point.row).nil?
-      col      = @point.col
-      new_line = @content.get_line(row)
-      if new_line.nil?
-        col = 0
+      if @point.row >= @content.rows
+        move_line(-1)
       else
-        col = new_line.length if new_line[col].nil?
+        move_line(0)
       end
     end
-    @point.set_point(row, col)
-    @num_lines -= 1
+    @num_lines -= 1 if @num_lines > 1
     @num_chars -= old_length
     true
   end
 
-  # private
+  private
   def delete_char(count)
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length
