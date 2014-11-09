@@ -1,13 +1,13 @@
 class Editor
-  require './list'
-  require './buffer'
+  require './mruby/list'
+  require './mruby/buffer'
 
   @buffer_chain
   @current_buffer
 
   def initialize
     @buffer_chain = LinkedList.new
-    buffer = Buffer.new
+    buffer = Buffer.new('default')
     @buffer_chain.push(buffer)
   end
 

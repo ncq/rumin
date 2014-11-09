@@ -1,6 +1,6 @@
-require './editor'
-
 class Rumin
+  require './mruby/editor'
+
   def initialize
     @editor = Editor.new
   end
