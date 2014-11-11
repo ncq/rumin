@@ -9,6 +9,7 @@ class Editor
     @buffer_chain = LinkedList.new
     buffer = Buffer.new('default')
     @buffer_chain.push(buffer)
+    @current_buffer = buffer
   end
 
   def finish
@@ -30,8 +31,10 @@ class Editor
   end
 
   def set_current_buffer
+    @current_buffer
   end
 
   def get_buffer_list
+    
   end
 end
