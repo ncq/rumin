@@ -16,12 +16,18 @@ class Editor
   end
 
   def save
+    @current_buffer.write_file
   end
 
   def load
+    @current_buffer.read_file
   end
 
-  def create_buffer
+  def create_buffer(name = nil)
+    if name == nil then
+      name = 'default'
+    end
+    new_buffer = Buffer.new(name)
   end
 
   def clear_buffer
