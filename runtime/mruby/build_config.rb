@@ -24,6 +24,7 @@ MRuby::Build.new do |conf|
   conf.gem :git => 'git@github.com:iij/mruby-mtest.git', :branch => 'master', :options => '-v'
   conf.gem :git => 'git@github.com:iij/mruby-mock.git', :branch => 'master', :options => '-v'
   conf.gem 'mrbgems/mruby-string-utf8'
+  conf.gem :git => 'https://github.com/KotaroHibi/mruby-curses.git'
 
   # include the default GEMs
   conf.gembox 'default'

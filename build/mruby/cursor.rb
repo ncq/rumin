@@ -8,6 +8,6 @@ class Cursor
   def set_position(row, col)
     @row = row
     @col = col
-    # CursesAPI::setpos(row, col)
+    Curses::move(row, col)
   end
 end

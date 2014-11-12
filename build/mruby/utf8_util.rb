@@ -23,7 +23,7 @@ module Utf8Util
     end
   end
 
-  def self.multibyte?(char)
+  def self.full_width?(char)
     return false if char.bytesize == 1
     input = self.convert_utf_code(char.bytes)
     # 半角カナ
