@@ -1,8 +1,7 @@
 class Rumin
-  require './mruby/buffer'
-  require './mruby/file'
+  require './mruby/editor'
+
   def initialize
-    
+    @editor = Editor.new
   end
 end
-

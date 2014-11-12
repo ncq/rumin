@@ -29,17 +29,17 @@ int main() {
 
     mrb_state *mrb = mrb_open();
 
-    // Initインスタンスの作成
+    // Ruminインスタンスの作成
     // mrubyファイルのロード
-    FILE *f1 = fopen("mruby/init.rb", "r");
+    FILE *f1 = fopen("mruby/rumin.rb", "r");
     // mrb_load_irep_file(mrb, f1);
     mrb_load_file(mrb, f1);
     // クラスオブジェクトを取得する
-    struct RClass *init = mrb_class_get(mrb, "Init");
+    struct RClass *rumin = mrb_class_get(mrb, "Rumin");
     // 引数をmrb_valueに変換する
-    mrb_value init_value = mrb_obj_value(init);
-    // Init#newを呼び出す
-    mrb_value init_instance = mrb_funcall(mrb, init_value, "new", 0);
+    mrb_value rumin_value = mrb_obj_value(rumin);
+    // Rumin#newを呼び出す
+    mrb_value rumin_instance = mrb_funcall(mrb, rumin_value, "new", 0);
 
     // Bufferインスタンスの初期化
     FILE *f2 = fopen("mruby/buffer.rb", "r");

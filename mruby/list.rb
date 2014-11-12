@@ -1,4 +1,4 @@
-class InteractiveLinkedList
+class LinkedList
   class Item
     attr_accessor :prev, :content, :next
 
@@ -46,7 +46,7 @@ class InteractiveLinkedList
     new_item.next = head
     new_item.prev = tail
     tail.next = new_item
-    head.prev = newitem
+    head.prev = new_item
     self
   end
 
