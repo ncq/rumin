@@ -53,8 +53,4 @@ class Command
     end
     vector
   end
-
-  def copy_character
-
-  end
 end
