@@ -28,6 +28,7 @@ MRuby::Build.new do |conf|
   conf.gem :github => 'iij/mruby-require'
   conf.gem :github => 'iij/mruby-regexp-pcre'
   conf.gem 'mrbgems/mruby-string-utf8'
+  conf.gem :git => 'https://github.com/KotaroHibi/mruby-curses.git'
 
   # include the default GEMs
   conf.gembox 'default'

@@ -11,18 +11,12 @@
 #include "mruby/array.h"
 
 void input_key(mrb_state *mrb, mrb_value keys);
-void evaluate(mrb_state *mrb, mrb_value command, mrb_value keys, mrb_value buffer);
-void redisplay(mrb_state *mrb, mrb_value buffer);
 
 int main() {
     char buf[BUFFSIZE];
 
     //日本語
     setlocale(LC_ALL,"");
-    // curses初期化
-    initscr();
-    cbreak();
-    noecho();
 
     //TRUEだと特殊生ーを押した時にキーコードを返す。FALSEだとエスケープシーケンス
     //keypad(stdscr, TRUE);
@@ -55,14 +49,23 @@ int main() {
     mrb_value command_value = mrb_obj_value(command);
     mrb_value command_instance = mrb_funcall(mrb, command_value, "new", 0);
 
+    // Displayインスタンスの初期化
+    // コンストラクタでcursesを初期化する
+    FILE *f4 = fopen("mruby/display.rb", "r");
+    mrb_load_file(mrb, f4);
+    struct RClass *display = mrb_class_get(mrb, "Display");
+    mrb_value display_value = mrb_obj_value(display);
+    mrb_value display_instance = mrb_funcall(mrb, display_value, "new", 0);
+    mrb_value window = mrb_funcall(mrb, display_instance, "create_window", 1, buffer_instance);
+
     mrb_value keys = mrb_ary_new(mrb);
     while(1) {
         input_key(mrb, keys);
-        evaluate(mrb, command_instance, keys, buffer_instance);
-        redisplay(mrb, buffer_instance);
+        mrb_funcall(mrb, command_instance, "evaluate", 2, keys, buffer_instance);
+        mrb_funcall(mrb, display_instance, "redisplay", 0);
     }
 
-    endwin();
+    mrb_funcall(mrb, display_instance, "finish", 0);
 
     mrb_close(mrb);
 
@@ -91,18 +94,4 @@ void input_key(mrb_state *mrb, mrb_value keys){
         mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
         mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
     }
-}
-
-void evaluate(mrb_state *mrb, mrb_value command, mrb_value keys, mrb_value buffer){
-    mrb_funcall(mrb, command, "evaluate", 2, keys, buffer);
-}
-
-void redisplay(mrb_state *mrb, mrb_value buffer){
-    clear();
-    mrb_value buffer_output = mrb_funcall(mrb, buffer, "get_content", 0);
-    const char *body = mrb_string_value_ptr(mrb, buffer_output);
-    addstr(body);
-    mrb_value row = mrb_funcall(mrb, buffer, "get_cursor_row", 0);
-    mrb_value col = mrb_funcall(mrb, buffer, "get_cursor_col", 0);
-    move(mrb_fixnum(row), mrb_fixnum(col));
 }

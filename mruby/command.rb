@@ -48,9 +48,6 @@ class Command
         end
       end
     end
-
-    def require_if_rb
-    end
   end
 
   def arrow?(inputs)
