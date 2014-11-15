@@ -16,7 +16,6 @@ class Command
   end
 
   def evaluate(inputs, buffer)
-    `echo #{inputs} >> shibata.log`
 
     # 矢印キーはutf8ではないかも
     if arrow?(inputs)
