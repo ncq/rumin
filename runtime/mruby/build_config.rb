@@ -23,6 +23,10 @@ MRuby::Build.new do |conf|
   conf.gem :git => 'git@github.com:ksss/mruby-file-stat.git', :branch => 'master', :options => '-v'
   conf.gem :git => 'git@github.com:iij/mruby-mtest.git', :branch => 'master', :options => '-v'
   conf.gem :git => 'git@github.com:iij/mruby-mock.git', :branch => 'master', :options => '-v'
+  conf.gem :github => 'iij/mruby-dir'
+  conf.gem :github => 'iij/mruby-tempfile'
+  conf.gem :github => 'iij/mruby-require'
+  conf.gem :github => 'iij/mruby-regexp-pcre'
   conf.gem 'mrbgems/mruby-string-utf8'
   conf.gem :git => 'https://github.com/KotaroHibi/mruby-curses.git'
 
