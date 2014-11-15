@@ -40,13 +40,10 @@ int main() {
     mrb_value rumin_value = mrb_obj_value(rumin);
     // Rumin#newを呼び出す
     mrb_value rumin_instance = mrb_funcall(mrb, rumin_value, "new", 0);
-
-    // Bufferインスタンスの初期化
-    FILE *f2 = fopen("mruby/buffer.rb", "r");
-    mrb_load_file(mrb, f2);
-    struct RClass *buffer = mrb_class_get(mrb, "Buffer");
-    mrb_value buffer_value = mrb_obj_value(buffer);
-    mrb_value buffer_instance = mrb_funcall(mrb, buffer_value, "new", 1, "1");
+    // Editorインスタンスの取得
+    mrb_value editor_instance = mrb_funcall(mrb, rumin_instance, "editor", 0);
+    // Bufferインスタンスの取得
+    mrb_value buffer_instance = mrb_funcall(mrb, editor_instance, "current_buffer", 0);
 
     // Commandインスタンスの初期化
     FILE *f3 = fopen("mruby/command.rb", "r");
