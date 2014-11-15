@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
 class Command
   require './mruby/utf8_util'
+	def initialize
+		@keybind = Hash.new
+		# File.open(File.expand_path('./mruby/config/keyconfig.rb'), 'r')
+		dsl = File.open('./mruby/config/keyconfig.rb', 'r') do |f|
+			f.read
+		end
 
-  # TODO: 上坂くんと連携
-  def keymap
-    {
-      'up' => 'BufferCommand::up(buffer)',
-      'down' => 'BufferCommand::down(buffer)',
-      'left' => 'BufferCommand::left(buffer)',
-      'right' => 'BufferCommand::right(buffer)',
-      10 => "BufferCommand::change_line(buffer)", # enter
-      127 => "BufferCommand::buffer_delete(buffer)", # delete
-      8 => "BufferCommand::buffer_del2(buffer)", # C-h
-    }
-  end
+    load_command
+		instance_eval(dsl)
+	end
+
+	def bind(key_name, process)
+		@keybind[key_name] = process
+	end
 
   def evaluate(inputs, buffer)
 
@@ -24,26 +25,23 @@ class Command
       input = Utf8Util::convert_utf_code(inputs)
     end
 
-    if keymap.key?(input)
-      eval keymap[input]
+    if @keybind.key?(input)
+      eval @keybind[input]
     else
       # input character
       buffer.insert_char(input.chr)
     end
   end
 
-
-  class << self
-    # commnad配下まとめてrequire
-    def load_command
-      # TODO: 再帰的に
-      paths = ['./mruby/command/', './mruby/command/plugin/']
-      paths.each do |path|
-        # plugins配下をrequire
-        Dir.foreach(path) do |file|
-          if file =~ /\.rb\z/
-            require path + file
-          end
+  # commnad配下まとめてrequire
+  def load_command
+    # TODO: 再帰的に
+    paths = ['./mruby/command/', './mruby/command/plugin/']
+    paths.each do |path|
+      # plugins配下をrequire
+      Dir.foreach(path) do |file|
+        if file =~ /\.rb\z/
+          require path + file
         end
       end
     end
@@ -102,5 +100,5 @@ class Command
 
 end
 
-# TODO: initへ移行
-Command.load_command
+
+
