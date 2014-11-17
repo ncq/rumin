@@ -3,6 +3,7 @@ class Editor
   require './mruby/buffer'
 
   attr_reader :current_buffer
+
   def initialize
     @buffer_chain = LinkedList.new
     buffer = Buffer.new('default')
@@ -12,6 +13,13 @@ class Editor
   end
 
   def finish
+    @buffer_chain.each do |buffer|
+      if buffer.modified? then
+        return false
+      else
+        return true
+      end
+    end
   end
 
   def save
@@ -33,20 +41,31 @@ class Editor
   end
 
   def clear_buffer
+    @current_buffer.content = ''
   end
 
-  def delete_buffer
+  def delete_buffer(name)
+    @buffer_chain.each_with_index do |buffer, i|
+      if buffer.name == name then
+        @buffer_chain.delete_at(i)
+      end
+    end
   end
 
   def set_current_buffer(name)
+    @buffer_chain.each do |buffer|
+      if buffer.name == name then
+        @current_buffer = buffer
+      end
+    end
     @current_buffer
   end
 
   def get_buffer_list
     buffer_list = Array.new
-    @buffer_chain.each { |buffer|
-      buffer_list.push(buffer)
-    }
+    @buffer_chain.each do |buffer|
+      buffer_list.push(buffer.name)
+    end
     buffer_list
   end
 end
