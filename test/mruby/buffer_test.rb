@@ -1,4 +1,4 @@
-class PointTest < MTest::Unit::TestCase
+class BufferTest < MTest::Unit::TestCase
   require './mruby/buffer'
 
   def test_initialize
@@ -270,6 +270,26 @@ class PointTest < MTest::Unit::TestCase
     assert_equal(7, buffer.num_chars)
     assert_equal(1, buffer.point.row)
     assert_equal(3, buffer.point.col)
+  end
+
+  def test_copy_character
+    buffer = Buffer.new('test')
+    buffer.insert_string('abcd')
+    buffer.move_point(-3)
+    assert_equal('b', buffer.copy_character) 
+    buffer.move_point(2)
+    assert_equal('d', buffer.copy_character) 
+  end
+
+  def test_paste_character
+    buffer = Buffer.new('test')
+    buffer.insert_string('abcd')
+    buffer.move_point(-3)
+    buffer.copy_character
+    buffer.move_point(2)
+    buffer.paste_character
+    buffer.move_point(-4)
+    assert_equal('abcbd', buffer.get_string(5)) 
   end
 end
 
