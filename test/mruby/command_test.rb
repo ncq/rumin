@@ -12,8 +12,6 @@ class CommandTest < MTest::Unit::TestCase
 
   def test_evaluate_success
   end
-
-
 end
 
 MTest::Unit.new.run
