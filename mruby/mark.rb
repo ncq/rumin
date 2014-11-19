@@ -22,15 +22,16 @@ class Mark
 
   def point_before_mark?(point)
     return false if point_at_mark?(point)
-    return false if @location.col > point.col
+    return false if @location.col < point.col
     true
   end
 
   def point_after_mark?(point)
     return false if point_at_mark?(point)
-    return false if @location.col < point.col
+    return false if @location.col > point.col
     true
   end
+
 =begin
   def swap_point_and_mark(point)
     swap = Point.new

@@ -31,7 +31,10 @@ class MarkTest < MTest::Unit::TestCase
   def test_point_before_mark?
     point = Point.new
     mark = Mark.new('test', point)
+    assert_equal(false, mark.point_before_mark?(point))
     point.set_point(2, 3)
+    assert_equal(false, mark.point_before_mark?(point))
+    mark.set_location(Point.new().set_point(4, 5))
     assert_equal(true, mark.point_before_mark?(point))
   end
 end
