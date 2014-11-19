@@ -6,6 +6,7 @@ class Display
     Curses.initscr
     Curses.cbreak
     Curses.noecho
+    Curses.keypad(true)
     true
   end
 
