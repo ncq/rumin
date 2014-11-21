@@ -10,8 +10,8 @@ class Mark
     @is_fixed = false
   end
 
-  def set_location(point)
-    @location.set_point(point.row, point.col)
+  def set_location(row, col)
+    @location.set_point(row, col)
     true
   end
 
@@ -32,15 +32,13 @@ class Mark
     true
   end
 
-=begin
   def swap_point_and_mark(point)
     swap = Point.new
-    swap = point
-    point = self
-    self = swap
+    swap.set_point(point.row, point.col)
+    point.set_point(self.location.row, self.location.col)
+    self.location.set_point(swap.row, swap.col)
     true
   end
-=end
 
 end
 
