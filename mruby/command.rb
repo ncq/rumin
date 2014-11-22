@@ -18,6 +18,7 @@ class Command
 
   def evaluate(inputs, buffer)
     input = Utf8Util::convert_utf_code(inputs)
+`echo #{input} >> shibata.log`
     if @keybind.key?(input)
       eval @keybind[input]
     else
