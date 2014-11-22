@@ -16,7 +16,6 @@ class Buffer
     @is_modified = false
     @num_chars = 0
     @num_lines = 1
-    @clipboard = nil
   end
 
   def get_cursor_row
@@ -142,12 +141,4 @@ class Buffer
     true
   end
 
-  def copy_character
-    @clipboard = get_char
-  end
-
-  def paste_character
-    insert_char(@clipboard)
-  end
 end
-
