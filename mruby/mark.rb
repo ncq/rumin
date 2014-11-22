@@ -31,11 +31,16 @@ class Mark
     true
   end
 
-  def swap_point_and_mark(point)
+  def exchange_point_and_mark(point)
     swap = Point.new
     swap.set_point(point.row, point.col)
     point.set_point(self.location.row, self.location.col)
     self.location.set_point(swap.row, swap.col)
+    true
+  end
+
+  def same_row?(point)
+    return false if @location.row != point.row
     true
   end
 

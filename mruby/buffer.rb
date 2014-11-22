@@ -18,7 +18,8 @@ class Buffer
     @is_modified = false
     @num_chars = 0
     @num_lines = 1
-    @clipboard = nil
+    #@clipboard = nil
+    @clipboard = ContentArray.new
   end
 
   def get_cursor_row
@@ -144,6 +145,7 @@ class Buffer
     true
   end
 
+=begin
   def copy_character
     @clipboard = get_char
   end
@@ -151,25 +153,38 @@ class Buffer
   def paste_character
     insert_char(@clipboard)
   end
+=end
 
   def set_copy_mark
     @copy_mark.set_location(@point.row, @point.col)
   end
 
   def copy_string
-    if @copy_mark.point_after_mark?(@point) then
-      @copy_mark.swap_point_and_mark(point)
-      @clipboard = get_string(@copy_mark.location.col - @point.col)
-      @copy_mark.swap_point_and_mark(point)
-    elsif @copy_mark.point_at_mark?(@point) then
-      copy_character
-    else
-      @clipboard = get_string(@copy_mark.location.col - @point.col)
+    @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @content.get_line(@copy_mark.location.row).size - @copy_mark.location.col)
+    for i in (@copy_mark.location.row + 1)...@point.row
+      @clipboard.content[i] = @content.get_line(i)
+    end
+    @clipboard.content[point.row] = @content.get_string(@point.row, 0, @point.col)
+    j = 1
+    for i in 1...@clipboard.rows
+      @clipboard.content.insert(j, "\n")
+      j = j + 2
     end
   end
 
   def paste_string
-    insert_string(@clipboard)
+    @content.insert_string(@clipboard.get_line(0), @point.row, @point.col)
+    @point.move_point(@clipboard.get_line(0).length)
+    for i in 1...(@clipboard.rows - 1)
+      if @clipboard.get_line(i) == "\n"
+        change_line
+      else
+        @content.content[@point.row] = @clipboard.get_line(i)
+        @point.move_point(@clipboard.get_line(i).length)
+      end
+    end
+    @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
+    @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
   end
 
 end
