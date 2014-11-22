@@ -1,13 +1,12 @@
 class Mark
   require './mruby/point'
 
-  attr_accessor :name, :is_fixed, :location
+  attr_accessor :name, :location
   #attr_reader :location
-  def initialize(name = mark, point)
+  def initialize(name = "mark", point)
     @name = name
     @location = Point.new
     @location.set_point(point.row, point.col)
-    @is_fixed = false
   end
 
   def set_location(row, col)

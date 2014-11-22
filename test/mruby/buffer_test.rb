@@ -291,6 +291,25 @@ class BufferTest < MTest::Unit::TestCase
     buffer.move_point(-4)
     assert_equal('abcbd', buffer.get_string(5)) 
   end
+
+  def test_copy_string
+    buffer = Buffer.new('test')
+    buffer.insert_string('abcd')
+    buffer.copy_mark.set_location(0, 1)
+    buffer.copy_string
+    assert_equal('bcd', buffer.clipboard)
+  end
+
+  def test_paste_string
+    buffer = Buffer.new('test')
+    buffer.insert_string('abcd')
+    buffer.copy_mark.set_location(0, 1)
+    buffer.copy_string
+    buffer.paste_string
+    buffer.move_point(-7)
+    assert_equal('abcdbcd', buffer.get_string(7))
+  end
+
 end
 
 MTest::Unit.new.run

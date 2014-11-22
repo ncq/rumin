@@ -77,11 +77,7 @@ void input_key(mrb_state *mrb, mrb_value keys){
     key = getch();
     mrb_ary_clear(mrb, keys);
     mrb_ary_push(mrb, keys, mrb_fixnum_value(key));
-    if(key == 27) {
-        // arrow key
-        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
-        mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
-    } else if(key >= 192 && key <= 223) {
+    if(key >= 192 && key <= 223) {
         // 2 bytes
         mrb_ary_push(mrb, keys, mrb_fixnum_value(getch()));
     } else if(key >= 224 && key <= 239) {

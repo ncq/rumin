@@ -3,9 +3,10 @@ class Buffer
   require './mruby/content'
   require './mruby/content_array'
   require './mruby/cursor'
+  require './mruby/mark'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -13,6 +14,7 @@ class Buffer
     @content = ContentArray.new
     @point = Point.new
     @cursor = Cursor.new
+    @copy_mark = Mark.new(@point)
     @is_modified = false
     @num_chars = 0
     @num_lines = 1
@@ -149,5 +151,20 @@ class Buffer
   def paste_character
     insert_char(@clipboard)
   end
+
+  def copy_string
+    if @copy_mark.point_after_mark?(@point) then
+      @copy_mark.swap_point_and_mark(point)
+      @clipboard = get_string(@copy_mark.location.col - @point.col)
+      @copy_mark.swap_point_and_mark(point)
+    else
+      @clipboard = get_string(@copy_mark.location.col - @point.col)
+    end
+  end
+
+  def paste_string
+    insert_string(@clipboard)
+  end
+
 end
 

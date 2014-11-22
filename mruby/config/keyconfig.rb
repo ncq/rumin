@@ -1,0 +1,10 @@
+bind 259, 'BufferCommand::up(buffer)' # up
+bind 258, 'BufferCommand::down(buffer)' # down
+bind 260, 'BufferCommand::left(buffer)' # left
+bind 261, 'BufferCommand::right(buffer)' # right
+bind 10, "BufferCommand::change_line(buffer)" # enter
+bind 127, "BufferCommand::buffer_delete(buffer)" # delete
+bind 8, "BufferCommand::buffer_del2(buffer)" # C-h
+bind 331, "BufferCommand::paste_string(buffer)" # insert
+bind 266, "BufferCommand::set_copy_mark(buffer)" # F2
+bind 267, "BufferCommand::copy_string(buffer)" # F3
