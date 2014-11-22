@@ -29,3 +29,11 @@ end
 bind 127 do |b|
 	b.delete -1
 end
+
+bind 5 do |b|
+	b.insert_string(eval(b.content.to_string).to_s)
+end
+
+bind 263 do |b|
+	b.delete -1
+end

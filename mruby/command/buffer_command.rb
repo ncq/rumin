@@ -23,6 +23,8 @@ class BufferCommand
     def buffer_del2(buffer)
       buffer.delete(-2)
     end
-
+    def eval_current_buffer(buffer)
+      eval(buffer.content.to_string)
+    end
   end
 end
