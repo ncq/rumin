@@ -1,7 +1,4 @@
 class Keybind
-	extend Forwadable
-	def_delegator :@binds, :key?, :bind?
-
 	def initialize(dsl_path)
 		@binds = Hash.new
 
@@ -13,6 +10,11 @@ class Keybind
 	end
 
 	def press(keyname, buffer)
+		@binds[keyname].call(buffer)
+	end
+
+	def key?(keyname)
+		@binds.key?(keyname)
 	end
 
 	private
