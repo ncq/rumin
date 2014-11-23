@@ -159,12 +159,35 @@ class Buffer
     @copy_mark.set_location(@point.row, @point.col)
   end
 
+  def copy
+    if @copy_mark.same_row?(@point)
+      copy_string
+    elsif @copy_mark.point_before_mark?(@point)
+      @copy_mark.exchange_point_and_mark(point)
+      copy_string_region
+      @copy_mark.exchange_point_and_mark(point)
+    else
+      copy_string_region
+    end
+  end
+
   def copy_string
+    if @copy_mark.point_before_mark?(@point)
+      @copy_mark.exchange_point_and_mark(point)
+      @clipboard = get_string(@point.col - @copy_mark.location.col)
+      @copy_mark.exchange_point_and_mark(point)
+    else
+      @clipboard = get_string(@point.col - @copy_mark.location.col)
+    end
+  end
+
+  def copy_string_region
+    @clipboard = ContentArray.new
     @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @content.get_line(@copy_mark.location.row).size - @copy_mark.location.col)
     for i in (@copy_mark.location.row + 1)...@point.row
       @clipboard.content[i] = @content.get_line(i)
     end
-    @clipboard.content[point.row] = @content.get_string(@point.row, 0, @point.col)
+    @clipboard.content[point.row - @copy_mark.location.row] = @content.get_string(@point.row, 0, @point.col)
     j = 1
     for i in 1...@clipboard.rows
       @clipboard.content.insert(j, "\n")

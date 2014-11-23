@@ -294,16 +294,27 @@ class BufferTest < MTest::Unit::TestCase
   end
 =end
 
-  def test_copy_string
+  def test_copy
+
+  end
+
+  def test_copy_string_region
     buffer = Buffer.new('test')
     buffer.insert_string('abcd')
     buffer.change_line
     buffer.insert_string('efgh')
     buffer.change_line
-    buffer.insert_string('ijkl') 
+    buffer.insert_string('ijkl')
     buffer.copy_mark.set_location(0, 1)
-    buffer.copy_string
+    buffer.copy
     assert_equal("bcd\nefgh\nijkl", buffer.clipboard.content.join)
+    buffer.copy_mark.set_location(1, 1)
+    buffer.copy
+    assert_equal("fgh\nijkl", buffer.clipboard.content.join)
+    buffer.point.set_point(1, 2)
+    buffer.copy_mark.set_location(2, 2)
+    buffer.copy
+    assert_equal("gh\nij", buffer.clipboard.content.join)
   end
 
   def test_paste_string
@@ -314,11 +325,10 @@ class BufferTest < MTest::Unit::TestCase
     buffer.change_line
     buffer.insert_string('ijkl')
     buffer.copy_mark.set_location(0, 1)
-    buffer.copy_string
+    buffer.copy
     buffer.paste_string
     assert_equal("abcd\nefgh\nijklbcd\nefgh\nijkl", buffer.get_content)
   end
-
 end
 
 MTest::Unit.new.run
