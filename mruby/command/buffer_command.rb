@@ -29,7 +29,7 @@ class BufferCommand
     end
 
     def copy_string(buffer)
-      buffer.copy_string
+      buffer.copy
     end
 
     def paste_string(buffer)

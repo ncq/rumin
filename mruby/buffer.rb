@@ -18,8 +18,8 @@ class Buffer
     @is_modified = false
     @num_chars = 0
     @num_lines = 1
-    #@clipboard = nil
-    @clipboard = ContentArray.new
+    @clipboard
+    #@clipboard = ContentArray.new
   end
 
   def get_cursor_row
@@ -160,6 +160,7 @@ class Buffer
   end
 
   def copy
+    @clipboard = ContentArray.new
     if @copy_mark.same_row?(@point)
       copy_string
     elsif @copy_mark.point_before_mark?(@point)
@@ -174,15 +175,14 @@ class Buffer
   def copy_string
     if @copy_mark.point_before_mark?(@point)
       @copy_mark.exchange_point_and_mark(point)
-      @clipboard = get_string(@point.col - @copy_mark.location.col)
+      @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @point.col - @copy_mark.location.col)
       @copy_mark.exchange_point_and_mark(point)
     else
-      @clipboard = get_string(@point.col - @copy_mark.location.col)
+      @clipboard[0].content = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @point.col - @copy_mark.location.col)
     end
   end
 
   def copy_string_region
-    @clipboard = ContentArray.new
     @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @content.get_line(@copy_mark.location.row).size - @copy_mark.location.col)
     for i in (@copy_mark.location.row + 1)...@point.row
       @clipboard.content[i] = @content.get_line(i)
