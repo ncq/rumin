@@ -13,13 +13,14 @@ class Editor
   end
 
   def finish
+    result = true
     @buffer_chain.each do |buffer|
       if buffer.modified? then
-        return false
-      else
-        return true
+        result = false
+        break
       end
     end
+    result
   end
 
   def save
@@ -45,11 +46,14 @@ class Editor
   end
 
   def delete_buffer(name)
+    target = nil
     @buffer_chain.each_with_index do |buffer, i|
       if buffer.name == name then
-        @buffer_chain.delete_at(i)
+        target = i
       end
     end
+    @buffer_chain.delete_at(target)
+    true
   end
 
   def set_current_buffer(name)

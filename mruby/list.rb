@@ -36,7 +36,7 @@ class LinkedList
   end
 
   def each
-    items.each {|item| yield item.data}
+    items.each {|item| yield item.content}
     self
   end
 
@@ -62,7 +62,7 @@ class LinkedList
   end
 
   def [](key)
-    find_item(key).data
+    find_item(key).content
   end
 
   private
@@ -80,6 +80,6 @@ class LinkedList
       raise ItemNotFoundException if item.next == head
       item = item.next
     end
-    items
+    item
   end
 end
