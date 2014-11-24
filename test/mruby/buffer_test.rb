@@ -299,11 +299,11 @@ class BufferTest < MTest::Unit::TestCase
     buffer.insert_string('abcd')
     buffer.copy_mark.set_location(0, 1)
     buffer.copy
-    assert_equal("bcd", buffer.clipboard)
+    assert_equal("bcd", buffer.clipboard.content[0])
     buffer.copy_mark.set_location(0, 4)
     buffer.point.set_point(0, 2)
     buffer.copy
-    assert_equal("cd", buffer.clipboard)
+    assert_equal("cd", buffer.clipboard.content[0])
   end
 
   def test_copy_string_region

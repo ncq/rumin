@@ -164,9 +164,9 @@ class Buffer
     if @copy_mark.same_row?(@point)
       copy_string
     elsif @copy_mark.point_before_mark?(@point)
-      @copy_mark.exchange_point_and_mark(point)
+      @copy_mark.exchange_point_and_mark(@point)
       copy_string_region
-      @copy_mark.exchange_point_and_mark(point)
+      @copy_mark.exchange_point_and_mark(@point)
     else
       copy_string_region
     end
@@ -174,11 +174,11 @@ class Buffer
 
   def copy_string
     if @copy_mark.point_before_mark?(@point)
-      @copy_mark.exchange_point_and_mark(point)
+      @copy_mark.exchange_point_and_mark(@point)
       @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @point.col - @copy_mark.location.col)
-      @copy_mark.exchange_point_and_mark(point)
+      @copy_mark.exchange_point_and_mark(@point)
     else
-      @clipboard[0].content = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @point.col - @copy_mark.location.col)
+      @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @point.col - @copy_mark.location.col)
     end
   end
 
@@ -187,7 +187,7 @@ class Buffer
     for i in (@copy_mark.location.row + 1)...@point.row
       @clipboard.content[i] = @content.get_line(i)
     end
-    @clipboard.content[point.row - @copy_mark.location.row] = @content.get_string(@point.row, 0, @point.col)
+    @clipboard.content[@point.row - @copy_mark.location.row] = @content.get_string(@point.row, 0, @point.col)
     j = 1
     for i in 1...@clipboard.rows
       @clipboard.content.insert(j, "\n")
@@ -196,18 +196,23 @@ class Buffer
   end
 
   def paste_string
-    @content.insert_string(@clipboard.get_line(0), @point.row, @point.col)
-    @point.move_point(@clipboard.get_line(0).length)
-    for i in 1...(@clipboard.rows - 1)
-      if @clipboard.get_line(i) == "\n"
-        change_line
-      else
-        @content.content[@point.row] = @clipboard.get_line(i)
-        @point.move_point(@clipboard.get_line(i).length)
+    unless @clipboard.content.size != 1
+      @content.insert_string(@clipboard.get_line(0), @point.row, @point.col)
+      @point.move_point(@clipboard.get_line(0).length)
+    else
+      @content.insert_string(@clipboard.get_line(0), @point.row, @point.col)
+      @point.move_point(@clipboard.get_line(0).length)
+      for i in 1...(@clipboard.rows - 1)
+        if @clipboard.get_line(i) == "\n"
+          change_line
+        else
+          @content.content[@point.row] = @clipboard.get_line(i)
+          @point.move_point(@clipboard.get_line(i).length)
+        end
       end
-    end
-    @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
-    @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
+      @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
+      @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
+   end
   end
 
 end
