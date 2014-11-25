@@ -119,7 +119,6 @@ class ContentArray < Content
     len  = line.length
     return 0 if len == 0
     converter = create_point_cursor_converter(row, len, true)
-    # TODO:最後の文字が半角のとき1文字、全角のときに2文字プラスするようにする
     if col > converter[len - 1]
       if Utf8Util::full_width?(line[-1])
         return (converter[len - 1] + 2)
