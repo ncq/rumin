@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # bind 259, 'BufferCommand::up(buffer)' # up
 # bind 258, 'BufferCommand::down(buffer)' # down
 # bind 260, 'BufferCommand::left(buffer)' # left

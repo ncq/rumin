@@ -1,6 +1,10 @@
+Gemfile.lock
+.idea
 *~
 *.out
 build.sh
 *.swp
-shibata.log
 *.log
+\#*\#
+build
+
