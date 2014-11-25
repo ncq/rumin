@@ -34,5 +34,4 @@ class Command
       end
     end
   end
-
 end

@@ -3,9 +3,10 @@ class Buffer
   require './mruby/content'
   require './mruby/content_array'
   require './mruby/cursor'
+  require './mruby/mark'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -13,10 +14,12 @@ class Buffer
     @content = ContentArray.new
     @point = Point.new
     @cursor = Cursor.new
+    @copy_mark = Mark.new(@point)
     @is_modified = false
     @num_chars = 0
     @num_lines = 1
-    @clipboard = nil
+    @clipboard
+    #@clipboard = ContentArray.new
   end
 
   def get_cursor_row
@@ -142,6 +145,7 @@ class Buffer
     true
   end
 
+=begin
   def copy_character
     @clipboard = get_char
   end
@@ -149,5 +153,67 @@ class Buffer
   def paste_character
     insert_char(@clipboard)
   end
+=end
+
+  def set_copy_mark
+    @copy_mark.set_location(@point.row, @point.col)
+  end
+
+  def copy
+    @clipboard = ContentArray.new
+    if @copy_mark.same_row?(@point)
+      copy_string
+    elsif @copy_mark.point_before_mark?(@point)
+      @copy_mark.exchange_point_and_mark(@point)
+      copy_string_region
+      @copy_mark.exchange_point_and_mark(@point)
+    else
+      copy_string_region
+    end
+  end
+
+  def copy_string
+    if @copy_mark.point_before_mark?(@point)
+      @copy_mark.exchange_point_and_mark(@point)
+      @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @point.col - @copy_mark.location.col)
+      @copy_mark.exchange_point_and_mark(@point)
+    else
+      @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @point.col - @copy_mark.location.col)
+    end
+  end
+
+  def copy_string_region
+    @clipboard.content[0] = @content.get_string(@copy_mark.location.row, @copy_mark.location.col, @content.get_line(@copy_mark.location.row).size - @copy_mark.location.col)
+    for i in (@copy_mark.location.row + 1)...@point.row
+      @clipboard.content[i] = @content.get_line(i)
+    end
+    @clipboard.content[@point.row - @copy_mark.location.row] = @content.get_string(@point.row, 0, @point.col)
+    j = 1
+    for i in 1...@clipboard.rows
+      @clipboard.content.insert(j, "\n")
+      j = j + 2
+    end
+  end
+
+  def paste_string
+    unless @clipboard.content.size != 1
+      @content.insert_string(@clipboard.get_line(0), @point.row, @point.col)
+      @point.move_point(@clipboard.get_line(0).length)
+    else
+      @content.insert_string(@clipboard.get_line(0), @point.row, @point.col)
+      @point.move_point(@clipboard.get_line(0).length)
+      for i in 1...(@clipboard.rows - 1)
+        if @clipboard.get_line(i) == "\n"
+          change_line
+        else
+          @content.content[@point.row] = @clipboard.get_line(i)
+          @point.move_point(@clipboard.get_line(i).length)
+        end
+      end
+      @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
+      @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
+   end
+  end
+
 end
 

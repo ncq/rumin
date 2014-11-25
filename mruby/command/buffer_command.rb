@@ -26,5 +26,14 @@ class BufferCommand
     def eval_current_buffer(buffer)
       eval(buffer.content.to_string)
     end
+    def set_copy_mark(buffer)
+      buffer.set_copy_mark
+    end
+    def copy(buffer)
+      buffer.copy
+    end
+    def paste_string(buffer)
+      buffer.paste_string
+    end
   end
 end
