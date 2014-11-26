@@ -193,6 +193,9 @@ class Buffer
       @clipboard.content.insert(j, "\n")
       j = j + 2
     end
+    for i in 0...@clipboard.rows
+      @clipboard.content[i] = "" if @clipboard.content[i] == nil
+    end
   end
 
   def paste_string
@@ -210,8 +213,12 @@ class Buffer
           @point.move_point(@clipboard.get_line(i).length)
         end
       end
-      @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
-      @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
+      if @clipboard.get_line(@clipboard.rows - 1) == "\n"
+        change_line
+      else 
+        @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
+        @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
+      end
    end
   end
 

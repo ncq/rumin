@@ -325,6 +325,25 @@ class BufferTest < MTest::Unit::TestCase
     assert_equal("gh\nij", buffer.clipboard.content.join)
   end
 
+  def test_copy_string_region2
+    buffer = Buffer.new('test')
+    buffer.insert_string('abcd')
+    buffer.change_line
+    buffer.copy_mark.set_location(0, 1)
+    buffer.copy
+    assert_equal("bcd\n", buffer.clipboard.content.join)
+  end
+
+  def test_paste_string2
+    buffer = Buffer.new('test')
+    buffer.insert_string('abcd')
+    buffer.change_line
+    buffer.copy_mark.set_location(0, 1)
+    buffer.copy
+    buffer.paste_string
+    assert_equal("abcd\nbcd\n", buffer.get_content)
+  end
+
   def test_paste_string
     buffer = Buffer.new('test')
     buffer.insert_string('abcd')
