@@ -356,6 +356,19 @@ class BufferTest < MTest::Unit::TestCase
     buffer.paste_string
     assert_equal("abcd\nefgh\nijklbcd\nefgh\nijkl", buffer.get_content)
   end
+
+  def test_store_select
+    buffer = Buffer.new('test')
+    buffer.insert_string('1 + 1')
+    buffer.store_select(buffer.evaluate_mark, buffer.evaluate)
+    assert_equal("1 + 1", buffer.evaluate.content[0])
+
+    buffer.change_line
+    buffer.insert_string('puts "a"')
+    buffer.store_select(buffer.evaluate_mark, buffer.evaluate)
+    assert_equal('1 + 1puts "a"', buffer.evaluate.content.join)
+  end
+
 end
 
 MTest::Unit.new.run

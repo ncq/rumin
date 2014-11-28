@@ -6,7 +6,7 @@ class Buffer
   require './mruby/mark'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -20,6 +20,8 @@ class Buffer
     @num_lines = 1
     @clipboard
     #@clipboard = ContentArray.new
+    @evaluate = ContentArray.new
+    @evaluate_mark = Mark.new(@point)
   end
 
   def get_cursor_row
@@ -120,6 +122,36 @@ class Buffer
     @num_lines -= 1 if @num_lines > 1
     @num_chars -= old_length
     true
+  end
+
+  def set_evaluate_mark
+    @evaluate_mark.set_location(@point.row, @point.col)
+  end
+
+  def store_select(mark, array)
+    if mark.same_row?(@point)
+      store_select_same_row(mark, array)
+    else
+      store_select_region(mark, array)
+    end
+  end
+
+  def store_select_same_row(mark, array)
+    if mark.point_before_mark?(@point)
+      mark.exchange_point_and_mark(@point)
+      array.content[0] = @content.get_string(mark.location.row, mark.location.col, @point.col - mark.location.col)
+      mark.exchange_point_and_mark(@point)
+    else
+      array.content[0] = @content.get_string(mark.location.row, mark.location.col, @point.col - mark.location.col)
+    end 
+  end
+
+  def store_select_region(mark, array)
+    array.content[0] = @content.get_string(mark.location.row, mark.location.col, @content.get_line(mark.location.row).size - mark.location.col)
+    for i in (mark.location.row + 1)...@point.row
+      array.content[i] = @content.get_line(i)
+    end
+    array.content[@point.row - mark.location.row] = @content.get_string(@point.row, 0, @point.col)
   end
 
   private
