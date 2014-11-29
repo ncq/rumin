@@ -155,13 +155,24 @@ class Buffer
   end
 
   def eval_content
-    eval @content.to_string
+    eval get_content
   end
 
   def insert_evaluated_content_comment
     insert_string "# => #{eval_content.inspect}"
   rescue => e
-    insert_string "# => error: #{e}"
+    insert_string "# => error: #{e.message}"
+  end
+
+  def insert_evaluated_line_comment
+    row = @cursor.row
+    line = @content.get_line(row)
+    begin
+      line = "#{line} # => #{eval(line).inspect}"
+    rescue => e
+      line = "#{line} # => error: #{e.message}"
+    end
+    @content.content[row] = line
   end
 
   private
