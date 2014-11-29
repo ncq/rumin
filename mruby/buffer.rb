@@ -159,7 +159,9 @@ class Buffer
   end
 
   def insert_evaluated_content_comment
-    insert_string "# => #{eval_content}"
+    insert_string "# => #{eval_content.inspect}"
+  rescue => e
+    insert_string "# => error: #{e}"
   end
 
   private
