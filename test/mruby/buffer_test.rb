@@ -369,6 +369,21 @@ class BufferTest < MTest::Unit::TestCase
     assert_equal('1 + 1puts "a"', buffer.evaluate.content.join)
   end
 
+  def test_eval_content
+    buffer = Buffer.new('test')
+    buffer.insert_string('1 + 1')
+    assert_equal(2, buffer.eval_content)
+  end
+
+  def test_eval_content
+    buffer = Buffer.new('test')
+    buffer.insert_string('1 + 1')
+    buffer.insert_string(' ')
+    buffer.insert_evaluated_content_comment
+    assert_equal('1 + 1 # => 2', buffer.content.to_string)
+  end
+
+
 end
 
 MTest::Unit.new.run

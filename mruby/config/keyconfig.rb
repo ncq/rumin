@@ -1,3 +1,4 @@
+# coding: utf-8
 # bind 259, 'BufferCommand::up(buffer)' # up
 # bind 258, 'BufferCommand::down(buffer)' # down
 # bind 260, 'BufferCommand::left(buffer)' # left
@@ -33,9 +34,16 @@ bind 127 do |b|
   b.delete -1
 end
 
+# C-e
 bind 5 do |b|
-  b.insert_string(eval(b.content.to_string).to_s)
+  b.eval_content
 end
+
+# C-r
+bind 18 do |b|
+  b.insert_evaluated_content_comment
+end
+
 
 bind 263 do |b|
   b.delete -1
