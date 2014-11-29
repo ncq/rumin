@@ -1,3 +1,4 @@
+# coding: utf-8
 class Buffer
   require './mruby/point'
   require './mruby/content'
@@ -167,6 +168,9 @@ class Buffer
   def insert_evaluated_line_comment
     row = @cursor.row
     line = @content.get_line(row)
+    # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
+    line = $1 if line =~ /\A(.*) # => .+\z/
+
     begin
       line = "#{line} # => #{eval(line).inspect}"
     rescue => e
