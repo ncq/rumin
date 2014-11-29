@@ -381,6 +381,12 @@ class BufferTest < MTest::Unit::TestCase
     buffer.insert_string(' ')
     buffer.insert_evaluated_content_comment
     assert_equal('1 + 1 # => 2', buffer.content.to_string)
+
+    buffer = Buffer.new('test')
+    buffer.insert_string('a + 1')
+    buffer.insert_string(' ')
+    buffer.insert_evaluated_content_comment
+    assert_equal(%[a + 1 # => error: undefined method 'a' for main], buffer.content.to_string)
   end
 
 
