@@ -154,6 +154,16 @@ class Buffer
     array.content[@point.row - mark.location.row] = @content.get_string(@point.row, 0, @point.col)
   end
 
+  def eval_content
+    eval @content.to_string
+  end
+
+  def insert_evaluated_content_comment
+    insert_string "# => #{eval_content.inspect}"
+  rescue => e
+    insert_string "# => error: #{e}"
+  end
+
   private
   def delete_char(count)
     old_line   = @content.get_line(@point.row)
