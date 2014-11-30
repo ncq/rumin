@@ -1,36 +1,38 @@
 class RuminFileTest < MTest::Unit::TestCase
   require './mruby/file'
 
-  @@test_path = './test/fixture/file_test.txt'
-  @@test_file = 'file_test.txt'
-
   def test_initialize
-    file = RuminFile.new(@@test_path)
-    assert_equal(@@test_file, file.file_name)
-    path = File.expand_path(@@test_path)
-    stat = File::Stat.new(path)
-    assert_equal(stat.mtime, file.last_modified)
+    test_file_path = './test/fixture/test.txt'
+    `echo "abc" > #{test_file_path}`
+    time = Time.new
+    file = RuminFile.new(test_file_path)
+    assert_equal(file.file_name, File.expand_path(test_file_path))
+    assert_equal(time.to_s, file.last_modified.to_s)
   end
 
   def test_read
-    file = RuminFile.new(@@test_path)
-    assert_equal(["test\n"], file.read)
+    test_file_path = './test/fixture/test.txt'
+    file = RuminFile.new(test_file_path)
+    expectation = Array.new
+    expectation.push("abc\n")
+    assert_equal(expectation, file.read)
   end
 
   def test_write
-    file = RuminFile.new(@@test_path)
-    file.write("test2\n")
-    assert_equal(["test2\n"], file.read)
-    path = File.expand_path(@@test_path)
-    stat = File::Stat.new(path)
-    assert_equal(stat.mtime, file.last_modified)
+    test_file_path = './test/fixture/file_test_write.txt'
+    file = RuminFile.new(test_file_path)
+    file.write("abc\n")
+    expectation = Array.new
+    expectation.push("abc\n")
+    assert_equal(expectation, file.read)
   end
 
-  def teardown
-    file = RuminFile.new(@@test_path)
-    file.write("test\n")
+  def test_is_changed?
+    test_file_path = './test/fixture/test.txt'
+    file = RuminFile.new(test_file_path)
+    assert_equal(false, file.is_changed?)
   end
-
+  
 end
 
 MTest::Unit.new.run

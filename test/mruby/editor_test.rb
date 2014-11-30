@@ -19,9 +19,22 @@ class EditorTest < MTest::Unit::TestCase
   end
 
   def test_save
+    editor = Editor.new
+    buffer = editor.create_buffer
+    buffer.set_file_name('./test/fixture/editor_save.txt')
+    buffer.insert_char('a')
+    assert_equal(true, editor.save)
   end
 
   def test_load
+    editor = Editor.new
+    buffer = editor.create_buffer
+    test_file_name = './test/fixture/editor_load.txt'
+    `touch #{test_file_name}`
+    `echo "test" > #{test_file_name}`
+    buffer.set_file_name(test_file_name)
+    assert_equal(true, editor.load)
+    assert_equal("test\n", buffer.get_content)
   end
 
   def test_create_buffer_nil

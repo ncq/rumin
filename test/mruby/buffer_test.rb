@@ -356,6 +356,37 @@ class BufferTest < MTest::Unit::TestCase
     buffer.paste_string
     assert_equal("abcd\nefgh\nijklbcd\nefgh\nijkl", buffer.get_content)
   end
+
+  def test_read_file
+    test_file_name = './test/fixture/buffer_read.txt'
+    `touch #{test_file_name}`
+    `echo "test" > #{test_file_name}`
+    buffer = Buffer.new('test')
+    buffer.set_file_name(test_file_name)
+    assert_equal(true, buffer.read_file)
+    assert_equal("test\n", buffer.get_content)
+  end
+
+  def test_write_file
+    test_file_name = './test/fixture/buffer_write.txt'
+    buffer = Buffer.new('test')
+    buffer.set_file_name(test_file_name)
+    buffer.insert_string('test\n')
+    assert_equal(true, buffer.write_file)
+    expectation = Buffer.new('expectation')
+    expectation.set_file_name(test_file_name)
+    expectation.read_file
+    assert_equal('test\n', expectation.get_content)
+  end
+
+  def test_is_file_changed?
+    test_file_name = './test/fixture/buffer_changed.txt'
+    `touch #{test_file_name}`
+    buffer = Buffer.new('test')
+    buffer.set_file_name(test_file_name)
+    assert_equal(false, buffer.is_file_changed?)
+  end
+
 end
 
 MTest::Unit.new.run
