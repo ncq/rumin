@@ -1,8 +1,10 @@
 require './mruby/window'
+require './mruby/echo_line'
 
 class Display
   def initialize
     @window_list = []
+    @echo_line = Echo.new
     Curses.initscr
     Curses.cbreak
     Curses.noecho
@@ -11,12 +13,12 @@ class Display
   end
 
   def finish
-    Curses::endwin
+    Curses.endwin
     true
   end
 
   def clear_screen
-    Curses::clear
+    Curses.clear
   end
 
   def create_window(buffer)
@@ -35,6 +37,15 @@ class Display
   end
 
   def insert_string(str)
-    Curses::addstr(str)
+    Curses.addstr(str)
+  end
+
+  def get_echo
+    @echo_line.line
+  end
+
+  def set_echo(str)
+    @echo_line.line = str
   end
 end
+
