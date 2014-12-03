@@ -1,3 +1,4 @@
+# coding: utf-8
 require './mruby/content'
 require './mruby/utf8_util'
 class ContentArray < Content

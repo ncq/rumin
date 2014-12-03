@@ -375,7 +375,7 @@ class BufferTest < MTest::Unit::TestCase
     assert_equal(2, buffer.eval_content)
   end
 
-  def test_eval_content
+  def test_insert_evaluated_content_comment
     buffer = Buffer.new('test')
     buffer.insert_string('1 + 1')
     buffer.insert_string(' ')
@@ -386,9 +386,24 @@ class BufferTest < MTest::Unit::TestCase
     buffer.insert_string('a + 1')
     buffer.insert_string(' ')
     buffer.insert_evaluated_content_comment
-    assert_equal(%[a + 1 # => error: undefined method 'a' for main], buffer.content.to_string)
+    assert_equal(%[a + 1 # => error: undefined method 'a' for main], buffer.get_content)
   end
 
+  def test_insert_evaluated_line_comment
+    buffer = Buffer.new('test')
+    buffer.insert_string("hoge")
+    buffer.change_line
+    buffer.insert_string("1 + 1")
+    buffer.insert_evaluated_line_comment
+    assert_equal("hoge\n1 + 1 # => 2", buffer.get_content)
+
+    buffer = Buffer.new('test')
+    buffer.insert_string("hoge")
+    buffer.change_line
+    buffer.insert_string("1 + a")
+    buffer.insert_evaluated_line_comment
+    assert_equal(%[hoge\n1 + a # => error: undefined method 'a' for main], buffer.get_content)
+  end
 
 end
 
