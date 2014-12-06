@@ -39,6 +39,7 @@ class Editor
     end
     new_buffer = Buffer.new(name)
     @buffer_chain.push(new_buffer)
+    @current_buffer = new_buffer
     new_buffer
   end
 

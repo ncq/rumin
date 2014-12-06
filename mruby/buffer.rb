@@ -5,6 +5,7 @@ class Buffer
   require './mruby/content_array'
   require './mruby/cursor'
   require './mruby/mark'
+  require './mruby/file'
 
   attr_accessor :name, :is_modified
   attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark
@@ -276,8 +277,41 @@ class Buffer
         @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
         @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
       end
-   end
+    end
+  end
+
+  def get_file_name
+    @file_name
+  end
+
+  def set_file_name(file_name)
+    @file_name = file_name
+    @file = RuminFile.new(file_name)
+  end
+
+  def write_file
+    if @file != nil then
+      @file.write(self.get_content)
+      return true
+    else
+      return false
+    end
+  end
+
+  def read_file
+    if @file != nil then
+      contents = @file.read
+      contents.each do |line|
+        self.insert_string(line)
+      end
+      return true
+    else
+      return false
+    end
+  end
+
+  def is_file_changed?
+    @file.is_changed?
   end
 
 end
-
