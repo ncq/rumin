@@ -2,11 +2,11 @@
 class Command
   require './mruby/utf8_util'
   require './mruby/keybind'
+  require './mruby/keymap'
   def initialize
     load_command
     keymap = Keymap.new('./mruby/config/keymap.yml')
     @keybind = Keybind.new('./mruby/config/keyconfig.rb', keymap)
-    `echo #{@keybind} >> uesaka.log`
   end
 
   def evaluate(inputs, buffer, display)
