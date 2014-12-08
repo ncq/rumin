@@ -3,9 +3,9 @@ class Command
   require './mruby/utf8_util'
   require './mruby/keybind'
   def initialize
-    # File.open(File.expand_path('./mruby/config/keyconfig.rb'), 'r')
     load_command
-    @keybind = Keybind.new('./mruby/config/keyconfig.rb')
+    keymap = Keymap.new('./mruby/config/keymap.yml')
+    @keybind = Keybind.new('./mruby/config/keyconfig.rb', keymap)
     `echo #{@keybind} >> uesaka.log`
   end
 
