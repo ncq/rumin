@@ -97,6 +97,22 @@
 # end
 
 # キーネームでバインディング対象を指定できる
+bind 'up' do |b|
+  b.move_line -1
+end
+
+bind 'down' do |b|
+  b.move_line 1
+end
+
+bind 'left' do |b|
+  b.move_point -1
+end
+
+bind 'right' do |b|
+  b.move_point 1
+end
+
 bind 'ctrl-p' do |b|
   b.move_line -1
 end
