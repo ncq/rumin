@@ -356,6 +356,84 @@ class BufferTest < MTest::Unit::TestCase
     buffer.paste_string
     assert_equal("abcd\nefgh\nijklbcd\nefgh\nijkl", buffer.get_content)
   end
+
+  def test_store_select
+    buffer = Buffer.new('test')
+    buffer.insert_string('1 + 1')
+    buffer.store_select(buffer.evaluate_mark, buffer.evaluate)
+    assert_equal("1 + 1", buffer.evaluate.content[0])
+
+    buffer.change_line
+    buffer.insert_string('puts "a"')
+    buffer.store_select(buffer.evaluate_mark, buffer.evaluate)
+    assert_equal('1 + 1puts "a"', buffer.evaluate.content.join)
+  end
+
+  def test_eval_content
+    buffer = Buffer.new('test')
+    buffer.insert_string('1 + 1')
+    assert_equal(2, buffer.eval_content)
+  end
+
+  def test_insert_evaluated_content_comment
+    buffer = Buffer.new('test')
+    buffer.insert_string('1 + 1')
+    buffer.insert_string(' ')
+    buffer.insert_evaluated_content_comment
+    assert_equal('1 + 1 # => 2', buffer.content.to_string)
+
+    buffer = Buffer.new('test')
+    buffer.insert_string('a + 1')
+    buffer.insert_string(' ')
+    buffer.insert_evaluated_content_comment
+    assert_equal(%[a + 1 # => error: undefined method 'a' for main], buffer.get_content)
+  end
+
+  def test_insert_evaluated_line_comment
+    buffer = Buffer.new('test')
+    buffer.insert_string("hoge")
+    buffer.change_line
+    buffer.insert_string("1 + 1")
+    buffer.insert_evaluated_line_comment
+    assert_equal("hoge\n1 + 1 # => 2", buffer.get_content)
+
+    buffer = Buffer.new('test')
+    buffer.insert_string("hoge")
+    buffer.change_line
+    buffer.insert_string("1 + a")
+    buffer.insert_evaluated_line_comment
+    assert_equal(%[hoge\n1 + a # => error: undefined method 'a' for main], buffer.get_content)
+
+  def test_read_file
+    test_file_name = './test/fixture/buffer_read.txt'
+    `touch #{test_file_name}`
+    `echo "test" > #{test_file_name}`
+    buffer = Buffer.new('test')
+    buffer.set_file_name(test_file_name)
+    assert_equal(true, buffer.read_file)
+    assert_equal("test\n", buffer.get_content)
+  end
+
+  def test_write_file
+    test_file_name = './test/fixture/buffer_write.txt'
+    buffer = Buffer.new('test')
+    buffer.set_file_name(test_file_name)
+    buffer.insert_string('test\n')
+    assert_equal(true, buffer.write_file)
+    expectation = Buffer.new('expectation')
+    expectation.set_file_name(test_file_name)
+    expectation.read_file
+    assert_equal('test\n', expectation.get_content)
+  end
+
+  def test_is_file_changed?
+    test_file_name = './test/fixture/buffer_changed.txt'
+    `touch #{test_file_name}`
+    buffer = Buffer.new('test')
+    buffer.set_file_name(test_file_name)
+    assert_equal(false, buffer.is_file_changed?)
+  end
+
 end
 
 MTest::Unit.new.run

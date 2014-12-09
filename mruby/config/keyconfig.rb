@@ -1,3 +1,4 @@
+# coding: utf-8
 # bind 259, 'BufferCommand::up(buffer)' # up
 # bind 258, 'BufferCommand::down(buffer)' # down
 # bind 260, 'BufferCommand::left(buffer)' # left
@@ -33,9 +34,21 @@ bind 127 do |b|
   b.delete -1
 end
 
+# C-e
 bind 5 do |b|
-  b.insert_string(eval(b.content.to_string).to_s)
+  b.eval_content
 end
+
+# C-r
+bind 18 do |b|
+  b.insert_evaluated_content_comment
+end
+
+# C-l
+bind 12 do |b|
+  b.insert_evaluated_line_comment
+end
+
 
 bind 263 do |b|
   b.delete -1
@@ -51,5 +64,35 @@ end
 
 bind 267 do |b|
   b.copy
+end
+
+# C-p
+bind 16 do |b|
+  b.move_line -1
+end
+
+# C-n
+bind 14 do |b|
+  b.move_line 1
+end
+
+# C-b
+bind 2 do |b|
+  b.move_point -1
+end
+
+# C-f
+bind 4 do |b|
+  b.move_point 1
+end
+
+# C-f
+bind 6 do |b|
+  b.move_point 1
+end
+
+# C-h
+bind 263 do |b|
+  b.delete -1
 end
 

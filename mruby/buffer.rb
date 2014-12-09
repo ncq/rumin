@@ -1,12 +1,14 @@
+# coding: utf-8
 class Buffer
   require './mruby/point'
   require './mruby/content'
   require './mruby/content_array'
   require './mruby/cursor'
   require './mruby/mark'
+  require './mruby/file'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -20,6 +22,8 @@ class Buffer
     @num_lines = 1
     @clipboard
     #@clipboard = ContentArray.new
+    @evaluate = ContentArray.new
+    @evaluate_mark = Mark.new(@point)
   end
 
   def get_cursor_row
@@ -122,6 +126,60 @@ class Buffer
     true
   end
 
+  def set_evaluate_mark
+    @evaluate_mark.set_location(@point.row, @point.col)
+  end
+
+  def store_select(mark, array)
+    if mark.same_row?(@point)
+      store_select_same_row(mark, array)
+    else
+      store_select_region(mark, array)
+    end
+  end
+
+  def store_select_same_row(mark, array)
+    if mark.point_before_mark?(@point)
+      mark.exchange_point_and_mark(@point)
+      array.content[0] = @content.get_string(mark.location.row, mark.location.col, @point.col - mark.location.col)
+      mark.exchange_point_and_mark(@point)
+    else
+      array.content[0] = @content.get_string(mark.location.row, mark.location.col, @point.col - mark.location.col)
+    end 
+  end
+
+  def store_select_region(mark, array)
+    array.content[0] = @content.get_string(mark.location.row, mark.location.col, @content.get_line(mark.location.row).size - mark.location.col)
+    for i in (mark.location.row + 1)...@point.row
+      array.content[i] = @content.get_line(i)
+    end
+    array.content[@point.row - mark.location.row] = @content.get_string(@point.row, 0, @point.col)
+  end
+
+  def eval_content
+    eval get_content
+  end
+
+  def insert_evaluated_content_comment
+    insert_string "# => #{eval_content.inspect}"
+  rescue => e
+    insert_string "# => error: #{e.message}"
+  end
+
+  def insert_evaluated_line_comment
+    row = @cursor.row
+    line = @content.get_line(row)
+    # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
+    line = $1 if line =~ /\A(.*) # => .+\z/
+
+    begin
+      line = "#{line} # => #{eval(line).inspect}"
+    rescue => e
+      line = "#{line} # => error: #{e.message}"
+    end
+    @content.content[row] = line
+  end
+
   private
   def delete_char(count)
     old_line   = @content.get_line(@point.row)
@@ -219,8 +277,41 @@ class Buffer
         @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
         @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
       end
-   end
+    end
+  end
+
+  def get_file_name
+    @file_name
+  end
+
+  def set_file_name(file_name)
+    @file_name = file_name
+    @file = RuminFile.new(file_name)
+  end
+
+  def write_file
+    if @file != nil then
+      @file.write(self.get_content)
+      return true
+    else
+      return false
+    end
+  end
+
+  def read_file
+    if @file != nil then
+      contents = @file.read
+      contents.each do |line|
+        self.insert_string(line)
+      end
+      return true
+    else
+      return false
+    end
+  end
+
+  def is_file_changed?
+    @file.is_changed?
   end
 
 end
-

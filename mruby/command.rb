@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 class Command
   require './mruby/utf8_util'
-	require './mruby/keybind'
-	def initialize
-		# File.open(File.expand_path('./mruby/config/keyconfig.rb'), 'r')
+  require './mruby/keybind'
+  def initialize
+    # File.open(File.expand_path('./mruby/config/keyconfig.rb'), 'r')
     load_command
+    @keybind = Keybind.new('./mruby/config/keyconfig.rb')
+    `echo #{@keybind} >> uesaka.log`
+  end
 
-		`echo 'loading' >> uesaka.log` 
-		@keybind = Keybind.new('./mruby/config/keyconfig.rb')
-		`echo #{@keybind} >> uesaka.log`
-	end
-
-  def evaluate(inputs, buffer)
+  def evaluate(inputs, buffer, display)
     input = Utf8Util::convert_utf_code(inputs)
     if @keybind.key?(input)
-			@keybind.press(input, buffer)
+      @keybind.press(input, buffer)
     else
       # input character
       buffer.insert_char(input.chr)
+      display.set_echo(input.chr)
     end
   end
 
