@@ -29,6 +29,7 @@ MRuby::Build.new do |conf|
   conf.gem :github => 'iij/mruby-require'
   conf.gem :github => 'iij/mruby-regexp-pcre'
   conf.gem 'mrbgems/mruby-string-utf8'
+	conf.gem :github => 'AndrewBelt/mruby-yaml'
 
   # include the default GEMs
   conf.gembox 'default'

@@ -7,4 +7,4 @@ build.sh
 *.log
 \#*\#
 build
-
+.DS_Store
