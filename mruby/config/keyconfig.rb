@@ -152,3 +152,11 @@ end
 bind 'ctrl-i' do |b|
   b.insert_evaluated_region_comment # 実行
 end
+
+bind 'ctrl-[' do |b|
+  b.echo_line.print_message("test")
+end
+
+bind 'ctrl-]' do |b|
+  b.echo_line.get_message
+end

@@ -6,9 +6,10 @@ class Buffer
   require './mruby/cursor'
   require './mruby/mark'
   require './mruby/file'
+  require './mruby/echo_line'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :echo_line
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -24,6 +25,7 @@ class Buffer
     #@clipboard = ContentArray.new
     @evaluate = ContentArray.new
     @evaluate_mark = Mark.new(@point)
+    @echo_line = Echo.new
   end
 
   def get_cursor_row

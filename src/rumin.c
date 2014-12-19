@@ -52,25 +52,12 @@ int main() {
     mrb_value display_value = mrb_obj_value(display);
     mrb_value display_instance = mrb_funcall(mrb, display_value, "new", 0);
     mrb_value window = mrb_funcall(mrb, display_instance, "create_window", 1, buffer_instance);
-
-    getmaxyx(stdscr, h, w);
-    WINDOW *echo_win;
-    echo_win = subwin(stdscr, 1, 100, h-1, 3);
-
-    mrb_value echo_line = mrb_funcall(mrb, display_instance, "get_echo", 0);
-    strncpy(buf, mrb_string_value_ptr(mrb, echo_line), strlen(mrb_string_value_ptr(mrb, echo_line)));
-    mvwaddstr(echo_win, 0, 0, buf);
     
     mrb_value keys = mrb_ary_new(mrb);
     while(1) {
         input_key(mrb, keys);
         mrb_funcall(mrb, command_instance, "evaluate", 3, keys, buffer_instance, display_instance);
         mrb_funcall(mrb, display_instance, "redisplay", 0);
-        echo_line = mrb_funcall(mrb, display_instance, "get_echo", 0);
-        strncpy(buf, mrb_string_value_ptr(mrb, echo_line), strlen(mrb_string_value_ptr(mrb, echo_line)));
-        mvwaddstr(echo_win, 0, 0, buf);
-        wmove(echo_win, 0, strlen(mrb_string_value_ptr(mrb, echo_line)));
-        wclrtobot(echo_win);//clear window behind cursor
     }
 
     mrb_funcall(mrb, display_instance, "finish", 0);
