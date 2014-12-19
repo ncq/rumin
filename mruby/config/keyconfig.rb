@@ -144,3 +144,11 @@ end
 bind 'ctrl-l' do |b|
   b.insert_evaluated_line_comment
 end
+
+bind 'ctrl-t' do |b|
+  b.set_evaluate_mark # markセット
+end
+
+bind 'ctrl-i' do |b|
+  b.insert_evaluated_region_comment # 実行
+end

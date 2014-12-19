@@ -156,6 +156,22 @@ class Buffer
     array.content[@point.row - mark.location.row] = @content.get_string(@point.row, 0, @point.col)
   end
 
+  def insert_evaluated_region_comment
+    store_select(@evaluate_mark, @evaluate)
+
+    row = @cursor.row
+    line = @content.get_line(row)
+    # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
+    line = $1 if line =~ /\A(.*) # => .+\z/
+
+    begin
+      line = "#{line} # => #{eval(@evaluate.to_string).inspect}"
+    rescue => e
+      line = "#{line} # => error: #{e.message}"
+    end
+    @content.content[row] = line
+  end
+
   def eval_content
     eval get_content
   end
