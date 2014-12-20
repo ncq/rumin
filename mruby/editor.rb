@@ -10,7 +10,6 @@ class Editor
     @buffer_chain.push(buffer)
     @current_buffer = buffer
     @serial = 0
-    @echo_line = Buffer.new('echo_line')
   end
 
   def finish

@@ -37,26 +37,21 @@ int main() {
     // Bufferインスタンスの取得
     mrb_value buffer_instance = mrb_funcall(mrb, editor_instance, "current_buffer", 0);
 
+    /* Displayインスタンスの取得 */
+    mrb_value display_instance = mrb_funcall(mrb, buffer_instance, "display", 0);
+    mrb_value window = mrb_funcall(mrb, display_instance, "create_window", 1, buffer_instance);
+
     // Commandインスタンスの初期化
     FILE *f3 = fopen("mruby/command.rb", "r");
     mrb_load_file(mrb, f3);
     struct RClass *command = mrb_class_get(mrb, "Command");
     mrb_value command_value = mrb_obj_value(command);
     mrb_value command_instance = mrb_funcall(mrb, command_value, "new", 0);
-
-    // Displayインスタンスの初期化
-    // コンストラクタでcursesを初期化する
-    FILE *f4 = fopen("mruby/display.rb", "r");
-    mrb_load_file(mrb, f4);
-    struct RClass *display = mrb_class_get(mrb, "Display");
-    mrb_value display_value = mrb_obj_value(display);
-    mrb_value display_instance = mrb_funcall(mrb, display_value, "new", 0);
-    mrb_value window = mrb_funcall(mrb, display_instance, "create_window", 1, buffer_instance);
     
     mrb_value keys = mrb_ary_new(mrb);
     while(1) {
         input_key(mrb, keys);
-        mrb_funcall(mrb, command_instance, "evaluate", 3, keys, buffer_instance, display_instance);
+        mrb_funcall(mrb, command_instance, "evaluate", 2, keys, buffer_instance);
         mrb_funcall(mrb, display_instance, "redisplay", 0);
     }
 

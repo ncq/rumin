@@ -9,14 +9,14 @@ class Command
     @keybind = Keybind.new('./mruby/config/keyconfig.rb', keymap)
   end
 
-  def evaluate(inputs, buffer, display)
+  def evaluate(inputs, buffer)
     input = Utf8Util::convert_utf_code(inputs)
     if @keybind.key?(input)
       @keybind.press(input, buffer)
     else
       # input character
       buffer.insert_char(input.chr)
-      display.set_echo(input.chr)
+      buffer.display.echo.print_message(input.chr)
     end
   end
 

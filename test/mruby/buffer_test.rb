@@ -434,6 +434,12 @@ class BufferTest < MTest::Unit::TestCase
     assert_equal(false, buffer.is_file_changed?)
   end
 
+  def test_print_message
+    buffer = Buffer.new('test')
+    buffer.display.echo.print_message("hoge")
+    assert_equal("hoge", buffer.display.echo.output)
+  end
+
 end
 
 MTest::Unit.new.run

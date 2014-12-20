@@ -6,10 +6,10 @@ class Buffer
   require './mruby/cursor'
   require './mruby/mark'
   require './mruby/file'
-  require './mruby/echo_line'
+  require './mruby/display'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :echo_line
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -25,7 +25,11 @@ class Buffer
     #@clipboard = ContentArray.new
     @evaluate = ContentArray.new
     @evaluate_mark = Mark.new(@point)
-    @echo_line = Echo.new
+    @display = Display.new
+  end
+
+  def print_echo(str)
+    @display.echo.print_message(str)
   end
 
   def get_cursor_row
@@ -85,6 +89,7 @@ class Buffer
     @point.move_point(count)
     col_c = @content.convert_point_to_cursor(@point.row, @point.col)
     @cursor.set_position(@point.row, col_c)
+    @display.echo.print_message("move point")
     col_p
   end
 
@@ -99,6 +104,7 @@ class Buffer
     cursor_col = @content.adjust_cursor_col(row, @cursor.col)
     @cursor.set_position(row, cursor_col)
     @point.set_point(row, @content.convert_cursor_to_point(row, length, cursor_col))
+    @display.echo.print_message("move line")
     row
   end
 
@@ -220,16 +226,6 @@ class Buffer
     @is_modified = true
     true
   end
-
-=begin
-  def copy_character
-    @clipboard = get_char
-  end
-
-  def paste_character
-    insert_char(@clipboard)
-  end
-=end
 
   def set_copy_mark
     @copy_mark.set_location(@point.row, @point.col)

@@ -1,12 +1,16 @@
 require './mruby/window'
+require './mruby/echo_line'
 
 class Display
+  attr_reader :echo
   def initialize
     @window_list = []
     Curses.initscr
     Curses.cbreak
     Curses.noecho
     Curses.keypad(true)
+    Curses.echoline
+    @echo = Echo.new
     true
   end
 
@@ -32,6 +36,7 @@ class Display
       insert_string(buffer.get_content)
       buffer.cursor.set_position(buffer.cursor.row, buffer.cursor.col)
     end
+    @echo.print
   end
 
   def insert_string(str)

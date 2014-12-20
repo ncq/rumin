@@ -70,6 +70,12 @@ class EditorTest < MTest::Unit::TestCase
     assert_equal(master_list, buffer_list)
   end
 
+  def test_print_echo
+    editor = Editor.new
+    buffer = editor.current_buffer
+    assert_equal("fuga", buffer.display.echo.output)
+  end
+
 end
 
 MTest::Unit.new.run
