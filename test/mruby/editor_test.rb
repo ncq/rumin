@@ -1,6 +1,10 @@
 class EditorTest < MTest::Unit::TestCase
   require './mruby/editor'
 
+  def teardown
+    Curses::endwin
+  end
+
   def test_initialize
     editor = Editor.new
     assert_equal('default', editor.current_buffer.name)

@@ -1,6 +1,10 @@
 class BufferTest < MTest::Unit::TestCase
   require './mruby/buffer'
 
+  def teardown
+    Curses::endwin
+  end
+
   def test_initialize
     buffer = Buffer.new('test')
     assert_equal(false, buffer.is_modified)
@@ -403,6 +407,7 @@ class BufferTest < MTest::Unit::TestCase
     buffer.insert_string("1 + a")
     buffer.insert_evaluated_line_comment
     assert_equal(%[hoge\n1 + a # => error: undefined method 'a' for main], buffer.get_content)
+  end
 
   def test_read_file
     test_file_name = './test/fixture/buffer_read.txt'
