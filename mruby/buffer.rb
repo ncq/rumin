@@ -8,8 +8,8 @@ class Buffer
   require './mruby/file'
   require './mruby/display'
 
-  attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display
+  attr_accessor :name, :is_modified, :display
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -26,6 +26,7 @@ class Buffer
     @evaluate = ContentArray.new
     @evaluate_mark = Mark.new(@point)
     @display = Display.new
+    @last_pattern = nil
   end
 
   def print_echo(str)
@@ -204,6 +205,14 @@ class Buffer
     @content.content[row] = line
   end
 
+  def search_forward(type)
+    search_content(:forward, type)
+  end
+
+  def search_backward(type)
+    search_content(:backward, type)
+  end
+
   private
   def delete_char(count)
     old_line   = @content.get_line(@point.row)
@@ -328,4 +337,29 @@ class Buffer
     @file.is_changed?
   end
 
+  def search_content(direction, type)
+    if type == :new
+      print_echo("                   ")
+      pattern = @display.echo.get_parameter("what's pattern?:")
+      @last_pattern = pattern
+    else
+      pattern = @last_pattern
+    end
+    if direction == :forward
+      match_point = @content.search_forward(pattern, @point.row, (@point.col + 1))
+    else
+      match_point = @content.search_backward(pattern, @point.row, (@point.col - 1))
+    end
+    if match_point.nil?
+      print_echo("pattern not matched")
+      return false
+    end
+    print_echo("pattern matched")
+
+    # move match point
+    @point.set_point(match_point[:row], match_point[:col])
+    cursor_col = @content.convert_point_to_cursor(@point.row, @point.col)
+    @cursor.set_position(@point.row, cursor_col)
+    true
+  end
 end

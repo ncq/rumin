@@ -58,3 +58,18 @@ bind 'ctrl-[' do |b|
   b.display.echo.print_message(b.display.echo.get_parameter("input string:"))
 end
 
+bind 'ctrl-w' do |b|
+  b.search_forward(:new)
+end
+
+bind 'ctrl-u' do |b|
+  b.search_backward(:new)
+end
+
+bind 'ctrl-d' do |b|
+  b.search_forward(:last)
+end
+
+bind 'ctrl-a' do |b|
+  b.search_backward(:last)
+end
