@@ -9,7 +9,7 @@ class Buffer
   require './mruby/display'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display, :contents
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -314,9 +314,12 @@ class Buffer
 
   def read_file
     if @file != nil then
-      contents = @file.read
-      contents.each do |line|
-        self.insert_string(line)
+      i = 0
+      @contents = @file.read
+      @contents.each do |line|
+        line.slice!("\n")
+        @content.content[i] = line
+        i += 1
       end
       return true
     else
@@ -326,6 +329,18 @@ class Buffer
 
   def is_file_changed?
     @file.is_changed?
+  end
+
+  def open_file
+    set_file_name(@display.echo.get_parameter("Open:"))
+    read_file
+    @display.echo.print_message("Open \"" + @file_name + "\"")
+  end
+
+  def save_file
+    set_file_name(@display.echo.get_parameter("Save:"))
+    write_file
+    @display.echo.print_message("Save \"" + @file_name + "\"")
   end
 
 end
