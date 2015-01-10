@@ -31,6 +31,6 @@ end
 
 task :mtest do
   FileList["test/**/*_test.rb"].each do |i|
-    sh "./run/bin/mruby #{i}"
+    sh "./runtime/bin/mruby #{i}"
   end
 end
