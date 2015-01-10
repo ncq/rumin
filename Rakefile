@@ -7,7 +7,7 @@ task :all => ["mruby", "build", "mtest"]
 task :default => ["mruby", "build"]
 
 task :mruby do
-#  sh "git clone https://github.com/mruby/mruby.git runtime"
+  sh "git clone https://github.com/mruby/mruby.git runtime"
   sh "cp mruby/config/build_config.rb runtime"
   sh "cd runtime && ruby ./minirake"
 end
