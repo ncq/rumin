@@ -410,13 +410,13 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_read_file
-    test_file_name = './test/fixture/buffer_read.txt'
+    test_file_name = './test/fixture/test.txt'#'./test/fixture/buffer_read.txt'
     `touch #{test_file_name}`
-    `echo "test" > #{test_file_name}`
+    `echo "test\ntest" > #{test_file_name}`
     buffer = Buffer.new('test')
     buffer.set_file_name(test_file_name)
     assert_equal(true, buffer.read_file)
-    assert_equal("test\n", buffer.get_content)
+    assert_equal("test\ntest", buffer.get_content)
   end
 
   def test_write_file

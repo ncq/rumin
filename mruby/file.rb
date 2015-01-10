@@ -3,17 +3,21 @@ class RuminFile
 
   def initialize(file_name)
     @file_name = File.expand_path(file_name)
+=begin
     if FileTest.exist?(file_name) then
       stat = File::Stat.new(@file_name)
       @last_modified = Time.at(stat.mtime)
     end
+=end
   end
 
   def write(content='')
     file = File.open(@file_name, "w")
     file.write(content)
+=begin
     stat = File::Stat.new(@file_name)
     @last_modified = stat.mtime
+=end
     file.close
   end
 

@@ -1,0 +1,9 @@
+before_script:
+  - cd run
+  - ruby ./minirake
+  - cd ../
+script:
+  - ruby ./minirake
+after_script:
+  - rake mtest
+
