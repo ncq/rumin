@@ -1,4 +1,26 @@
 # coding: utf-8
+
+module AddHistory
+  module ClassMethods
+    def method_added(name)
+      return if /hook/.match(name.to_s) || method_defined?("#{name}_without_hook")
+      hook = <<-EOS
+        def #{name}_hook
+           # Backup content before modify.
+           @history.push(@content.dup)
+        end
+      EOS
+      self.class_eval(hook)
+
+      a1 = "alias #{name}_without_hook #{name}"
+      self.class_eval(a1)
+
+      a2 = "alias #{name} #{name}_hook"
+      self.class_eval(a2)
+    end
+  end
+end
+
 class Buffer
   require './mruby/point'
   require './mruby/content'
@@ -7,6 +29,7 @@ class Buffer
   require './mruby/mark'
   require './mruby/file'
   require './mruby/display'
+  require './mruby/history'
 
   attr_accessor :name, :is_modified
   attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display
@@ -26,7 +49,10 @@ class Buffer
     @evaluate = ContentArray.new
     @evaluate_mark = Mark.new(@point)
     @display = Display.new
+    @history = History.new
   end
+
+  include AddHistory
 
   def print_echo(str)
     @display.echo.print_message(str)
@@ -326,6 +352,11 @@ class Buffer
 
   def is_file_changed?
     @file.is_changed?
+  end
+
+  def undo
+    @history.pop
+    @content = @history.pop
   end
 
 end
