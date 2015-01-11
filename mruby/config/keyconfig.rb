@@ -58,3 +58,14 @@ bind 'ctrl-[' do |b|
   b.display.echo.print_message(b.display.echo.get_parameter("input string:"))
 end
 
+bind 'ctrl-o' do |b|
+  b.open_file
+end
+
+bind 'ctrl-p' do |b|
+  b.save_file
+end
+
+bind 'ctrl-d' do |b|
+  b.delete(-1)
+end
