@@ -1,4 +1,4 @@
-C_COMPILER = "clang"
+C_COMPILER = "gcc"
 TARGET = "rumin"
 BUILD_DIR = "build"
 INC_DIR = "runtime/mruby/include"
@@ -7,9 +7,7 @@ task :all => ["mruby", "build", "mtest"]
 task :default => ["mruby", "build"]
 
 task :mruby do
-  sh "git clone https://github.com/mruby/mruby.git runtime"
-  sh "cp mruby/config/build_config.rb runtime"
-  sh "cd runtime && ruby ./minirake"
+  sh 'sh ./mruby.sh'
 end
 
 task :build => "rumin" do
@@ -25,7 +23,7 @@ end
 
 file "rumin" => ["src/rumin.c"] do |t|
   puts "building."
-  sh "mkdir #{BUILD_DIR}"
+  sh "if test -e #{BUILD_DIR}; then echo '#{BUILD_DIR} directory is already exist. Now cleaning.'; rm -fr #{BUILD_DIR}/*; else mkdir #{BUILD_DIR}; fi"
   sh "#{C_COMPILER} -Iruntime/include src/rumin.c runtime/build/host/lib/libmruby.a -lm -lncursesw -ldl -lyaml -o #{BUILD_DIR}/#{TARGET}"
 end
 
