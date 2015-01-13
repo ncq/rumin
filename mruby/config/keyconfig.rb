@@ -54,6 +54,11 @@ bind 'ctrl-i' do |b|
   b.insert_evaluated_region_comment # 実行
 end
 
+bind 'ctrl-g' do |b|
+  # Qiitan::Client.new(b).post
+  debug Qiitan::Client.new(b).post
+end
+
 bind 'ctrl-[' do |b|
   b.display.echo.print_message(b.display.echo.get_parameter("input string:"))
 end

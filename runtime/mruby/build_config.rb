@@ -30,6 +30,14 @@ MRuby::Build.new do |conf|
   conf.gem :github => 'iij/mruby-regexp-pcre'
   conf.gem 'mrbgems/mruby-string-utf8'
   conf.gem :github => 'AndrewBelt/mruby-yaml'
+  conf.gem :github => 'matsumoto-r/mruby-httprequest'
+  conf.gem :github => 'matsumoto-r/mruby-simplehttp'
+  conf.gem :github => 'mattn/mruby-http'
+  conf.gem :github => 'iij/mruby-socket'
+  conf.gem :github => 'iij/mruby-pack'
+  conf.gem :github => 'luisbebop/mruby-polarssl'
+  conf.gem :github => 'mattn/mruby-json'
+  conf.gem :github => 'iij/mruby-env'
 
   # include the default GEMs
   conf.gembox 'default'
