@@ -56,8 +56,8 @@ bind 'ctrl-i' do |b|
 end
 
 bind 'ctrl-g' do |b|
-  # Qiitan::Client.new(b).post
-  debug Qiitan::Client.new(b).post
+  # Qiitan::Client.new.post(b)
+  debug Qiitan::Client.new.post(b)
 end
 
 bind 'ctrl-[' do |b|

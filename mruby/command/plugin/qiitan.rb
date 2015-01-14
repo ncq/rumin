@@ -3,22 +3,20 @@ module Qiitan
   API_BASE_URL = 'https://qiita.com/api/v1/'
 
   class Client
-    def initialize(buffer)
+    def initialize
       @http_client = HttpRequest.new
       url = "#{API_BASE_URL}auth?url_name=#{ENV['QIITA_URL_NAME']}&password=#{ENV['QIITA_PASSWORD']}"
       response = @http_client.post(url)
-      @buffer = buffer
       @token = JSON::parse(response.body)['token']
     end
 
-    def post
+    def post(buffer)
       url = "#{API_BASE_URL}items?token=#{@token}"
-
       # 日本語が扱えないー。とりあえずcurlで対処
       # headers = {'Content-Type' => 'application/json'}
-      # response = @http_client.post(url, data, headers)
+      # response = @http_client.post(url, data(buffer), headers)
       # JSON.parse(response.body)['url']
-      response = `curl -s -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '#{data}'  '#{url}'`
+      response = `curl -s -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '#{data(buffer)}'  '#{url}'`
       JSON.parse(response)['url']
     rescue => e
       debug "post error."
@@ -26,10 +24,10 @@ module Qiitan
     end
 
     private
-    def data
-      title = @buffer.content.content[0]
-      tags = @buffer.content.content[1].split(',').map{|x|{name: x}}
-      body = @buffer.content.content[2..-1].join("\n")
+    def data(buffer)
+      title = buffer.content.content[0]
+      tags = buffer.content.content[1].split(',').map{|x|{name: x}}
+      body = buffer.content.content[2..-1].join("\n")
 
       data = {
         title: title,
