@@ -1,46 +1,47 @@
 # coding: utf-8
 module Qiitan
-	API_BASE_URL = 'https://qiita.com/api/v1/'
+  API_BASE_URL = 'https://qiita.com/api/v1/'
 
-	class Client
-		def initialize(buffer)
+  class Client
+    def initialize(buffer)
       @http_client = HttpRequest.new
-
-			url = "#{API_BASE_URL}auth?url_name=#{ENV['QIITA_URL_NAME']}&password=#{ENV['QIITA_PASSWORD']}"
+      url = "#{API_BASE_URL}auth?url_name=#{ENV['QIITA_URL_NAME']}&password=#{ENV['QIITA_PASSWORD']}"
       response = @http_client.post(url)
       @buffer = buffer
       @token = JSON::parse(response.body)['token']
     end
 
-   	def post
-			url = "#{API_BASE_URL}items?token=#{@token}"
-      set_title_and_body
-      data = {
-        title: @title,
-        body: @body,
-        private: false,
-        tags: [{name: "test"}]
-      }
-      data = JSON.generate(data)
+    def post
+      url = "#{API_BASE_URL}items?token=#{@token}"
 
-      headers = {'Content-Type' => 'application/json'}
-      response = @http_client.post(url, data, headers)
-
-      # response = `curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '#{data}'  '#{url}'`
-
-			JSON.parse(response.body)['url']
+      # 日本語が扱えないー。とりあえずcurlで対処
+      # headers = {'Content-Type' => 'application/json'}
+      # response = @http_client.post(url, data, headers)
+      # JSON.parse(response.body)['url']
+      response = `curl -s -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '#{data}'  '#{url}'`
+      JSON.parse(response)['url']
     rescue => e
+      debug "post error."
       debug e
-		end
-
-    private
-    def set_title_and_body
-      @buffer.get_content =~ /(.*?)\n(.*)/m
-      @title, @body = $1, $2
-    rescue
-      debug "parse error."
-      raise "parse error."
     end
 
-	end
+    private
+    def data
+      title = @buffer.content.content[0]
+      tags = @buffer.content.content[1].split(',').map{|x|{name: x}}
+      body = @buffer.content.content[2..-1].join("\n")
+
+      data = {
+        title: title,
+        body: body,
+        tags: tags,
+        private: false,
+      }
+      JSON.generate(data)
+    rescue => e
+      debug "data error."
+      debug e
+    end
+
+  end
 end

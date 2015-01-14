@@ -1,3 +1,4 @@
+# coding: utf-8
 bind 'up' do |b|
   b.move_line -1
 end
@@ -63,3 +64,6 @@ bind 'ctrl-[' do |b|
   b.display.echo.print_message(b.display.echo.get_parameter("input string:"))
 end
 
+bind 'ctrl-d' do |b|
+  b.delete(-1)
+end

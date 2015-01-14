@@ -38,6 +38,7 @@ MRuby::Build.new do |conf|
   conf.gem :github => 'luisbebop/mruby-polarssl'
   conf.gem :github => 'mattn/mruby-json'
   conf.gem :github => 'iij/mruby-env'
+  conf.gem :github => 'masahino/mruby-nkf'
 
   # include the default GEMs
   conf.gembox 'default'
