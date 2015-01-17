@@ -8,7 +8,6 @@ class Echo
 
   def print_message(str)
     @output = str
-    refresh
     Curses.ewmove(0, 0)
     Curses.ewaddstr(@output)
   end
@@ -23,10 +22,5 @@ class Echo
     print_message(message)
     @input = Curses.ewgetstr
     return @input
-  end
-
-  def refresh
-    Curses.ewmove(0, 0)
-    Curses.ewaddstr("                                                 ")
   end
 end
