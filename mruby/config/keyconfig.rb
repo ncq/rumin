@@ -1,3 +1,4 @@
+# coding: utf-8
 bind 'up' do |b|
   b.move_line -1
 end
@@ -68,4 +69,8 @@ end
 
 bind 'ctrl-d' do |b|
   b.delete(-1)
+end
+
+bind 'ctrl-u' do |b|
+  b.undo
 end

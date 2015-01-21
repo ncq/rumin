@@ -1,26 +1,5 @@
 # coding: utf-8
 
-module AddHistory
-  module ClassMethods
-    def method_added(name)
-      return if /hook/.match(name.to_s) || method_defined?("#{name}_without_hook")
-      hook = <<-EOS
-        def #{name}_hook
-           # Backup content before modify.
-           @history.push(@content.dup)
-        end
-      EOS
-      self.class_eval(hook)
-
-      a1 = "alias #{name}_without_hook #{name}"
-      self.class_eval(a1)
-
-      a2 = "alias #{name} #{name}_hook"
-      self.class_eval(a2)
-    end
-  end
-end
-
 class Buffer
   require './mruby/point'
   require './mruby/content'
@@ -52,8 +31,6 @@ class Buffer
     @history = History.new
   end
 
-  include AddHistory
-
   def print_echo(str)
     @display.echo.print_message(str)
   end
@@ -79,6 +56,7 @@ class Buffer
   end
 
   def insert_char(char)
+    @history.push(self.get_content)
     @content.insert_char(char, @point.row, @point.col)
     move_point(1)
     @num_chars += 1
@@ -87,6 +65,7 @@ class Buffer
   end
 
   def insert_string(str)
+    @history.push(YAML.dump(@content))
     @content.insert_string(str, @point.row, @point.col)
     move_point(str.length)
     @num_chars += str.length
@@ -95,6 +74,7 @@ class Buffer
   end
 
   def delete(count)
+    @history.push(self.get_content)
     count = count.to_i
     if count < 0 && (@point.col - count.abs) < 0
       merge_line(-1)
@@ -142,6 +122,7 @@ class Buffer
   end
 
   def delete_line()
+    @history.push(self.get_content)
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length
     @content.delete_line(@point.row)
@@ -191,6 +172,7 @@ class Buffer
   end
 
   def insert_evaluated_region_comment
+    @history.push(self.get_content)
     store_select(@evaluate_mark, @evaluate)
 
     row = @cursor.row
@@ -217,6 +199,7 @@ class Buffer
   end
 
   def insert_evaluated_line_comment
+    @history.push(self.get_content)
     row = @cursor.row
     line = @content.get_line(row)
     # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
@@ -232,6 +215,7 @@ class Buffer
 
   private
   def delete_char(count)
+    @history.push(self.get_content)
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length
     @content.delete_char(count, @point.row, @point.col)
@@ -245,6 +229,7 @@ class Buffer
 
   def merge_line(count)
     return if (@point.row + count) < 0
+    @history.push(self.get_content)
     col = @content.get_line(@point.row + count).length
     @content.merge_line(count, @point.row)
     @point.set_point((@point.row + count), col)
@@ -297,6 +282,7 @@ class Buffer
   end
 
   def paste_string
+    @history.push(self.get_content)
     unless @clipboard.content.size != 1
       @content.insert_string(@clipboard.get_line(0), @point.row, @point.col)
       @point.move_point(@clipboard.get_line(0).length)
@@ -358,8 +344,15 @@ class Buffer
   end
 
   def undo
-    @history.pop
-    @content = @history.pop
+    temp = @history.pop
+    if temp == nil then; return end
+    new_content = ContentArray.new
+    i = 0
+    temp.each_line do |line|
+      new_content.insert_string(line, i, 0)
+      i += 1
+    end
+    @content = new_content
   end
 
   def open_file
@@ -375,4 +368,3 @@ class Buffer
   end
 
 end
-
