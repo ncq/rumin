@@ -42,3 +42,7 @@ Please read "mruby/config/keyconfig.rb", and you can know how to execute rumin's
 ## Clean
 
     rake clean
+
+## License
+* MIT
+  * see LICENSE
