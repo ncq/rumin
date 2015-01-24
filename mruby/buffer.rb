@@ -1,4 +1,26 @@
 # coding: utf-8
+
+module AddHistory
+  module ClassMethods
+    def method_added(name)
+      return if /hook/.match(name.to_s) || method_defined?("#{name}_without_hook")
+      hook = <<-EOS
+        def #{name}_hook
+           # Backup content before modify.
+           @history.push(@content.dup)
+        end
+      EOS
+      self.class_eval(hook)
+
+      a1 = "alias #{name}_without_hook #{name}"
+      self.class_eval(a1)
+
+      a2 = "alias #{name} #{name}_hook"
+      self.class_eval(a2)
+    end
+  end
+end
+
 class Buffer
   require './mruby/point'
   require './mruby/content'
@@ -7,9 +29,10 @@ class Buffer
   require './mruby/mark'
   require './mruby/file'
   require './mruby/display'
+  require './mruby/history'
 
   attr_accessor :name, :is_modified
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display
+  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display, :contents
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -26,7 +49,10 @@ class Buffer
     @evaluate = ContentArray.new
     @evaluate_mark = Mark.new(@point)
     @display = Display.new
+    @history = History.new
   end
+
+  include AddHistory
 
   def print_echo(str)
     @display.echo.print_message(str)
@@ -314,9 +340,12 @@ class Buffer
 
   def read_file
     if @file != nil then
-      contents = @file.read
-      contents.each do |line|
-        self.insert_string(line)
+      i = 0
+      @contents = @file.read
+      @contents.each do |line|
+        line.slice!("\n")
+        @content.content[i] = line
+        i += 1
       end
       return true
     else
@@ -328,4 +357,22 @@ class Buffer
     @file.is_changed?
   end
 
+  def undo
+    @history.pop
+    @content = @history.pop
+  end
+
+  def open_file
+    set_file_name(@display.echo.get_parameter("Open:"))
+    read_file
+    @display.echo.print_message("Open \"" + @file_name + "\"")
+  end
+
+  def save_file
+    set_file_name(@display.echo.get_parameter("Save:"))
+    write_file
+    @display.echo.print_message("Save \"" + @file_name + "\"")
+  end
+
 end
+
