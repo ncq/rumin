@@ -36,6 +36,10 @@ int main() {
     mrb_value editor_instance = mrb_funcall(mrb, rumin_instance, "editor", 0);
     // Bufferインスタンスの取得
     mrb_value buffer_instance = mrb_funcall(mrb, editor_instance, "current_buffer", 0);
+    /* Displayインスタンスの取得 */
+    mrb_value display_instance = mrb_funcall(mrb, editor_instance, "display", 0);
+    mrb_funcall(mrb, buffer_instance, "set_display", 1, display_instance);
+    mrb_value window = mrb_funcall(mrb, display_instance, "create_window", 1, buffer_instance);
 
     // Commandインスタンスの初期化
     FILE *f3 = fopen("mruby/command.rb", "r");
@@ -44,33 +48,11 @@ int main() {
     mrb_value command_value = mrb_obj_value(command);
     mrb_value command_instance = mrb_funcall(mrb, command_value, "new", 0);
 
-    // Displayインスタンスの初期化
-    // コンストラクタでcursesを初期化する
-    FILE *f4 = fopen("mruby/display.rb", "r");
-    mrb_load_file(mrb, f4);
-    struct RClass *display = mrb_class_get(mrb, "Display");
-    mrb_value display_value = mrb_obj_value(display);
-    mrb_value display_instance = mrb_funcall(mrb, display_value, "new", 0);
-    mrb_value window = mrb_funcall(mrb, display_instance, "create_window", 1, buffer_instance);
-
-    getmaxyx(stdscr, h, w);
-    WINDOW *echo_win;
-    echo_win = subwin(stdscr, 1, 100, h-1, 3);
-
-    mrb_value echo_line = mrb_funcall(mrb, display_instance, "get_echo", 0);
-    strncpy(buf, mrb_string_value_ptr(mrb, echo_line), strlen(mrb_string_value_ptr(mrb, echo_line)));
-    mvwaddstr(echo_win, 0, 0, buf);
-    
     mrb_value keys = mrb_ary_new(mrb);
     while(1) {
         input_key(mrb, keys);
-        mrb_funcall(mrb, command_instance, "evaluate", 3, keys, buffer_instance, display_instance);
+        mrb_funcall(mrb, command_instance, "evaluate", 2, keys, buffer_instance);
         mrb_funcall(mrb, display_instance, "redisplay", 0);
-        echo_line = mrb_funcall(mrb, display_instance, "get_echo", 0);
-        strncpy(buf, mrb_string_value_ptr(mrb, echo_line), strlen(mrb_string_value_ptr(mrb, echo_line)));
-        mvwaddstr(echo_win, 0, 0, buf);
-        wmove(echo_win, 0, strlen(mrb_string_value_ptr(mrb, echo_line)));
-        wclrtobot(echo_win);//clear window behind cursor
     }
 
     mrb_funcall(mrb, display_instance, "finish", 0);

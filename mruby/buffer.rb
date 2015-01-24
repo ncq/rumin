@@ -1,4 +1,26 @@
 # coding: utf-8
+
+module AddHistory
+  module ClassMethods
+    def method_added(name)
+      return if /hook/.match(name.to_s) || method_defined?("#{name}_without_hook")
+      hook = <<-EOS
+        def #{name}_hook
+           # Backup content before modify.
+           @history.push(@content.dup)
+        end
+      EOS
+      self.class_eval(hook)
+
+      a1 = "alias #{name}_without_hook #{name}"
+      self.class_eval(a1)
+
+      a2 = "alias #{name} #{name}_hook"
+      self.class_eval(a2)
+    end
+  end
+end
+
 class Buffer
   require './mruby/point'
   require './mruby/content'
@@ -6,12 +28,17 @@ class Buffer
   require './mruby/cursor'
   require './mruby/mark'
   require './mruby/file'
+  require './mruby/display'
+  require './mruby/history'
   require './mruby/window'
+
+  include AddHistory
 
   attr_accessor :name, :is_modified
   attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines,
               :point, :cursor, :clipboard, :copy_mark, :evaluate,
-              :evaluate_mark, :window
+              :evaluate_mark, :display, :contents, :window
+
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -27,6 +54,16 @@ class Buffer
     #@clipboard = ContentArray.new
     @evaluate = ContentArray.new
     @evaluate_mark = Mark.new(@point)
+    @history = History.new
+  end
+
+  def set_display(display)
+    return false unless display.is_a?(Display)
+    @display = display
+  end
+
+  def print_echo(str)
+    @display.echo.print_message(str)
   end
 
   def get_cursor_row
@@ -148,6 +185,22 @@ class Buffer
     array.content[@point.row - mark.location.row] = @content.get_string(@point.row, 0, @point.col)
   end
 
+  def insert_evaluated_region_comment
+    store_select(@evaluate_mark, @evaluate)
+
+    row = @cursor.row
+    line = @content.get_line(row)
+    # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
+    line = $1 if line =~ /\A(.*) # => .+\z/
+
+    begin
+      line = "#{line} # => #{eval(@evaluate.to_string).inspect}"
+    rescue => e
+      line = "#{line} # => error: #{e.message}"
+    end
+    @content.content[row] = line
+  end
+
   def eval_content
     eval get_content
   end
@@ -210,16 +263,6 @@ class Buffer
     @is_modified = true
     true
   end
-
-=begin
-  def copy_character
-    @clipboard = get_char
-  end
-
-  def paste_character
-    insert_char(@clipboard)
-  end
-=end
 
   def set_copy_mark
     @copy_mark.set_location(@point.row, @point.col)
@@ -308,9 +351,12 @@ class Buffer
 
   def read_file
     if @file != nil then
-      contents = @file.read
-      contents.each do |line|
-        self.insert_string(line)
+      i = 0
+      @contents = @file.read
+      @contents.each do |line|
+        line.slice!("\n")
+        @content.content[i] = line
+        i += 1
       end
       return true
     else
@@ -471,5 +517,22 @@ class Buffer
       @cursor.set_position(0, @cursor.col) if scrolled
     end
     scrolled
+  end
+
+  def undo
+    @history.pop
+    @content = @history.pop
+  end
+
+  def open_file
+    set_file_name(@display.echo.get_parameter("Open:"))
+    read_file
+    @display.echo.print_message("Open \"" + @file_name + "\"")
+  end
+
+  def save_file
+    set_file_name(@display.echo.get_parameter("Save:"))
+    write_file
+    @display.echo.print_message("Save \"" + @file_name + "\"")
   end
 end

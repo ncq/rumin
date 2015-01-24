@@ -17,5 +17,3 @@ class Rumin
 
   end
 end
-
-

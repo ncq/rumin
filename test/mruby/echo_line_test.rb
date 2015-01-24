@@ -3,7 +3,7 @@ class EchoTest < MTest::Unit::TestCase
 
   def test_initialize
     echo = Echo.new
-    assert_equal('echo', echo.line)
+    assert_equal('echo', echo.output)
   end
 
   def test_set_echo

@@ -1,8 +1,9 @@
 class Editor
   require './mruby/list'
   require './mruby/buffer'
+  require './mruby/display'
 
-  attr_reader :current_buffer
+  attr_reader :current_buffer, :display
 
   def initialize
     @buffer_chain = LinkedList.new
@@ -10,7 +11,7 @@ class Editor
     @buffer_chain.push(buffer)
     @current_buffer = buffer
     @serial = 0
-    @echo_line = Buffer.new('echo_line')
+    @display = Display.new
   end
 
   def finish

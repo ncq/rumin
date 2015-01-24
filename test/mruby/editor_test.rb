@@ -1,6 +1,10 @@
 class EditorTest < MTest::Unit::TestCase
   require './mruby/editor'
 
+  def teardown
+    Curses::endwin
+  end
+
   def test_initialize
     editor = Editor.new
     assert_equal('default', editor.current_buffer.name)
@@ -68,6 +72,12 @@ class EditorTest < MTest::Unit::TestCase
     master_list = Array.new
     master_list.push('default')
     assert_equal(master_list, buffer_list)
+  end
+
+  def test_print_echo
+    editor = Editor.new
+    buffer = editor.current_buffer
+    assert_equal("fuga", buffer.display.echo.output)
   end
 
 end

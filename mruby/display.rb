@@ -3,15 +3,16 @@ require './mruby/echo_line'
 require './mruby/screen'
 
 class Display
+  attr_reader :echo
   def initialize
     @window_list = []
-    @echo_line = Echo.new
     Curses.initscr
     Curses.cbreak
     Curses.noecho
     Curses.keypad(true)
     Curses.echoline
     @screen = Screen.new
+    @echo = Echo.new
     true
   end
 
@@ -76,19 +77,20 @@ class Display
           end
         end
       end
+# Curses::ewmove(0, 0);
+# point_row = buffer.point.row
+# end_row   = window.start_row + window.rows
+# Curses::ewaddstr("point:#{point_row} cursor:#{current_row} org_cursor:#{buffer.cursor.org_row} cursor_full:#{buffer.cursor.full_row} turn:#{window.turn} scrolled:#{buffer.cursor.scrolled} start:#{window.start_row} start_turn:#{window.start_turn} end:#{end_row} pagesize:#{window.rows} move:#{window.move_row} before:#{window.before_start}");
+
+# Curses::ewaddstr("point_row:#{buffer.point.row} point_col:#{buffer.point.col} current_row:#{current_row} current_col:#{current_col} turn:#{buffer.cursor.turn} start_row:#{window.start_row} start_turn:#{window.start_turn} move_row:#{window.move_row} move_turn:#{window.turn}");
+# Curses::ewaddstr("point_row:#{buffer.point.row} point_col:#{buffer.point.col} current_row:#{current_row} current_col:#{current_col} turn:#{buffer.cursor.turn} last_col:#{buffer.cursor.last_col} full_col:#{buffer.cursor.full_col}");
+# Curses.refresh
       buffer.cursor.set_position(current_row, current_col)
     end
+    @echo.print
   end
 
   def insert_string(str)
     Curses.addstr(str)
-  end
-
-  def get_echo
-    @echo_line.line
-  end
-
-  def set_echo(str)
-    @echo_line.line = str
   end
 end

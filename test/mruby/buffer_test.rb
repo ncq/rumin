@@ -2,6 +2,10 @@ class BufferTest < MTest::Unit::TestCase
   require './mruby/buffer'
   require './mruby/window'
 
+  def teardown
+    Curses::endwin
+  end
+
   def test_initialize
     buffer = create_buffer
     assert_equal(false, buffer.is_modified)
@@ -517,13 +521,13 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_read_file
-    test_file_name = './test/fixture/buffer_read.txt'
+    test_file_name = './test/fixture/test.txt'#'./test/fixture/buffer_read.txt'
     `touch #{test_file_name}`
-    `echo "test" > #{test_file_name}`
+    `echo "test\ntest" > #{test_file_name}`
     buffer = create_buffer
     buffer.set_file_name(test_file_name)
     assert_equal(true, buffer.read_file)
-    assert_equal("test\n", buffer.get_content)
+    assert_equal("test\ntest", buffer.get_content)
   end
 
   def test_write_file
@@ -556,6 +560,12 @@ class BufferTest < MTest::Unit::TestCase
 
   def test_window_resize
     pass('This method is unable to unit test because this method use Curses.')
+  end
+
+  def test_print_message
+    buffer = Buffer.new('test')
+    buffer.display.echo.print_message("hoge")
+    assert_equal("hoge", buffer.display.echo.output)
   end
 
   def create_buffer(name = 'test')

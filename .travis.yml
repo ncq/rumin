@@ -1,0 +1,5 @@
+script:
+  - ruby ./minirake
+after_script:
+  - rake mtest
+

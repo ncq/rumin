@@ -2,6 +2,10 @@ class WindowTest < MTest::Unit::TestCase
   require './mruby/window'
   require './mruby/buffer'
 
+  def teardown
+    Curses::endwin
+  end
+
   def test_initialize
     buffer = Buffer.new('test')
     window = Window.new(0, 10, 40, 80, buffer)
