@@ -19,6 +19,7 @@ Or if you using Ubuntu 14.04 LTS, you have to install ruby-dev with apt.
     bison
     ncurses (On Ubuntu, libncurses5-dev and libncursesw5-dev. On OS X, please install ncurses with --enable-widec opton.)
     YAML (On Ubuntu, libyaml-dev)
+    YARD
 
 ## How to build
 
