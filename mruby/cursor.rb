@@ -1,6 +1,5 @@
 class Cursor
-  attr_accessor :turn, :full_col, :full_row, :scrolled, :org_row
-  attr_accessor :row, :col
+  attr_accessor :row, :col, :turn, :full_col, :full_row
   def initialize
     # cursor row(Y position) with scroll
     @row       = 0

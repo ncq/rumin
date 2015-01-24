@@ -3,7 +3,7 @@ require './mruby/buffer'
 require './mruby/content'
 require './mruby/utf8_util'
 class ContentArray < Content
-  attr_reader :content, :buffer, :turns, :row_converter
+  attr_reader :content
 
   # 配列の添字が行、各行は文字列
   # rubyでは文字列に対して配列のような位置を指定した操作ができる
@@ -13,11 +13,6 @@ class ContentArray < Content
     else
       @content = [content]
     end
-  end
-
-  def set_buffer(buffer)
-    return false unless buffer.is_a?(Buffer)
-    @buffer = buffer
   end
 
   def get_char(row, col)
@@ -65,11 +60,17 @@ class ContentArray < Content
   end
 
   def delete_line(row)
-    return false if row > @content.size
+    return false if row >= @content.size
     line1 = @content[0, row]
     line2 = @content[(row + 1), (@content.size - row - 1)]
     @content = line1 + line2
     @content = [''] if @content.size == 0
+    true
+  end
+
+  def replace_line(row, line)
+    return false if row >= @content.size
+    @content[row] = line
     true
   end
 
@@ -109,13 +110,13 @@ class ContentArray < Content
     @content
   end
 
-  def convert_col_point_to_cursor(row, col, cols)
+  def convert_col_point_into_cursor(row, col, cols)
     converter = create_point_cursor_col_converter(row, col, cols, true)
     return nil if converter.nil?
     converter[col]
   end
 
-  def convert_col_cursor_to_point(row, col, cursor_col, cols)
+  def convert_col_cursor_into_point(row, col, cursor_col, cols)
     converter = create_point_cursor_col_converter(row, col, cols, false)
     return nil if converter.nil?
     converter[cursor_col]
@@ -159,7 +160,7 @@ class ContentArray < Content
       step = Utf8Util::full_width?(line[i]) ? 2 : 1
       cur      += step
       cur_line += step
-      # 全角文字がはみ出してしまう場合の補正
+      # adjust point if last character of line is a double-byte
       if cur_line == cols && !line[i + 1].nil? && Utf8Util::full_width?(line[i + 1])
         cur += 1
       end
