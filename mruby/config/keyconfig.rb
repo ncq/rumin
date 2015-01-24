@@ -1,3 +1,4 @@
+# coding: utf-8
 bind 'up' do |b|
   b.move_line -1
 end
@@ -52,6 +53,11 @@ end
 
 bind 'ctrl-i' do |b|
   b.insert_evaluated_region_comment # 実行
+end
+
+bind 'ctrl-g' do |b|
+  # Qiitan::Client.new.post(b)
+  debug Qiitan::Client.new.post(b)
 end
 
 bind 'ctrl-[' do |b|
