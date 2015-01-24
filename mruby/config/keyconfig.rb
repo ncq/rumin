@@ -144,3 +144,7 @@ end
 bind 'ctrl-l' do |b|
   b.insert_evaluated_line_comment
 end
+
+bind 'resize' do |b|
+  b.resize_window
+end
