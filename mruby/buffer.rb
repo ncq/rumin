@@ -10,6 +10,7 @@ class Buffer
   require './mruby/display'
   require './mruby/history'
   require './mruby/buffer/insert_char'
+  require './mruby/buffer/change_line'
 
   attr_accessor :name, :num_chars
   attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display, :contents
@@ -114,10 +115,16 @@ class Buffer
   end
 
   def change_line()
+    command = ChangeLine.new(self, @content, @point, @cursor)
+    command.execute
+    @history.push(command)
+    @is_modified = true
+=begin
     @content.change_line(@point.row, @point.col)
     @point.set_point((@point.row + 1), 0)
     @cursor.set_position(@point.row, @point.col)
     @num_lines += 1
+=end
   end
 
   def delete_line()

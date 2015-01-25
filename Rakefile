@@ -1,3 +1,5 @@
+require 'yard'
+
 C_COMPILER = "gcc"
 TARGET = "rumin"
 BUILD_DIR = "build"
@@ -31,4 +33,9 @@ task :mtest do
   FileList["test/**/*_test.rb"].each do |i|
     sh "./runtime/bin/mruby #{i}"
   end
+end
+
+task :yardoc do
+  sh "yardoc mruby"
+  puts "done."
 end

@@ -9,7 +9,7 @@
 7: ctrl-g
 8: ctrl-h
 9: ctrl-i
-10: ctrl-j
+10: return
 11: ctrl-k
 12: ctrl-l
 13: ctrl-m
@@ -36,3 +36,4 @@
 259: up
 260: left
 261: right
+343: enter
