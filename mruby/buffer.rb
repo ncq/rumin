@@ -9,8 +9,9 @@ class Buffer
   require './mruby/file'
   require './mruby/display'
   require './mruby/history'
+  require './mruby/buffer/insert_char'
 
-  attr_accessor :name, :is_modified
+  attr_accessor :name, :num_chars
   attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display, :contents
   def initialize(name)
     @name = name
@@ -56,16 +57,14 @@ class Buffer
   end
 
   def insert_char(char)
-    @history.push(self.get_content)
-    @content.insert_char(char, @point.row, @point.col)
-    move_point(1)
-    @num_chars += 1
+    command = InsertChar.new(self, @content, @point)
+    command.execute(char)
+    @history.push(command)
     @is_modified = true
-    true
   end
 
   def insert_string(str)
-    @history.push(YAML.dump(@content))
+    @history.push(self.get_content)
     @content.insert_string(str, @point.row, @point.col)
     move_point(str.length)
     @num_chars += str.length
@@ -346,13 +345,7 @@ class Buffer
   def undo
     temp = @history.pop
     if temp == nil then; return end
-    new_content = ContentArray.new
-    i = 0
-    temp.each_line do |line|
-      new_content.insert_string(line, i, 0)
-      i += 1
-    end
-    @content = new_content
+    temp.unexecute
   end
 
   def open_file
