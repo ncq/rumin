@@ -271,7 +271,6 @@ class BufferTest < MTest::Unit::TestCase
     buffer.change_line
     buffer.insert_string('c' * 52)
     buffer.move_line(-5)
-    buffer.move_point(2)
     # move to next turn
     assert_equal(0, buffer.move_line(1))
     assert_equal(0, buffer.point.row)
@@ -289,9 +288,9 @@ class BufferTest < MTest::Unit::TestCase
     # move to next row multi
     assert_equal(2, buffer.move_line(2))
     assert_equal(2, buffer.point.row)
-    assert_equal(10, buffer.point.col)
+    assert_equal(12, buffer.point.col)
     assert_equal(4, buffer.cursor.row)
-    assert_equal(10, buffer.cursor.col)
+    assert_equal(12, buffer.cursor.col)
     assert_equal(0, buffer.cursor.turn)
   end
 
@@ -320,9 +319,9 @@ class BufferTest < MTest::Unit::TestCase
     # move to prev row multi
     assert_equal(0, buffer.move_line(-2))
     assert_equal(0, buffer.point.row)
-    assert_equal(50, buffer.point.col)
+    assert_equal(52, buffer.point.col)
     assert_equal(1, buffer.cursor.row)
-    assert_equal(10, buffer.cursor.col)
+    assert_equal(12, buffer.cursor.col)
     assert_equal(1, buffer.cursor.turn)
   end
 
@@ -352,7 +351,7 @@ class BufferTest < MTest::Unit::TestCase
     assert_equal(2, buffer.num_lines)
     assert_equal(7, buffer.num_chars)
     assert_equal(0, buffer.point.row)
-    assert_equal(3, buffer.point.col)
+    assert_equal(4, buffer.point.col)
   end
 
   def test_delete_line_middle

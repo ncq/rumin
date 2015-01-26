@@ -118,24 +118,27 @@ class Buffer
   def move_point(count = 1)
     step = (count > 0) ? 1 : -1
     count.abs.times { |i| move_point_one(step) }
+    @point.hold_col  = @point.col
+    @cursor.hold_col = @cursor.col
     @point.col
   end
 
-  def move_line(count = 1)
+  def move_line(count = 1, is_hold = true)
     step = (count > 0) ? 1 : -1
-    count.abs.times { |i| move_line_one(step) }
+    count.abs.times { |i| move_line_one(step, is_hold) }
     @point.row
   end
 
   def change_line()
     @content.change_line(@point.row, @point.col)
     @point.set_point((@point.row + 1), 0)
-    #@cursor.set_position(@cursor.row + 1, 0)
+    @point.hold_col = 0
     cursor_row = (@cursor.col == 0 && @cursor.turn > 0) ? @cursor.row : @cursor.row + 1
     @cursor.set_position(cursor_row, 0)
-    @cursor.turn = 0
+    @cursor.turn     = 0
     @cursor.full_col = 0
     @cursor.full_row = @cursor.full_row + 1
+    @cursor.hold_col = 0
     scroll_window_line(1)
     @num_lines += 1
   end
@@ -144,11 +147,23 @@ class Buffer
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length
     @content.delete_line(@point.row)
-    if @content.rows == 0
+    if @content.rows == 1 && @content.get_line(@point.row) == ''
       @point.set_point(0, 0)
+      @point.hold_col = 0
       @cursor.set_position(0, 0)
-    else
-      move_line(-1) if @point.row >= @content.rows
+      @cursor.turn     = 0
+      @cursor.full_row = 0
+      @cursor.full_col = 0
+      @cursor.hold_col = 0
+    elsif @point.row >= @content.rows
+      old_col_p = @point.col
+      old_col_c = @cursor.col
+      if @cursor.turn > 0
+        @cursor.turn.times { |i| move_line_turn_change(-1, old_length) }
+        @point.set_point(@point.row, old_col_p)
+        @cursor.set_position(@cursor.row, old_col_c)
+      end
+      move_line_row_change(-1)
     end
     @num_lines -= 1 if @num_lines > 1
     @num_chars -= old_length
@@ -259,7 +274,7 @@ class Buffer
     @point.set_point(@point.row, prev_line.length)
     @cursor.set_position(@cursor.row, (last_col % @window.cols))
     @content.merge_line(count, @point.row)
-    move_line(-1)
+    move_line(-1, false)
     @is_modified = true
     true
   end
@@ -394,7 +409,7 @@ class Buffer
     return @point.row if (@point.row + 1) == @content.rows
     @point.set_point(@point.row, 0)
     @cursor.set_position(@cursor.row, 0)
-    move_line(1)
+    move_line(1, false)
     @point.row
   end
 
@@ -405,7 +420,7 @@ class Buffer
     last_col  = @content.convert_col_point_into_cursor(prev_row, prev_line.length, @window.cols)
     @point.set_point(@point.row, prev_line.length)
     @cursor.set_position(@cursor.row, (last_col % @window.cols))
-    move_line(-1)
+    move_line(-1, false)
     @point.row
   end
 
@@ -417,17 +432,22 @@ class Buffer
     row_c    = scrolled ? @cursor.row : @cursor.row + step
   end
 
-  def move_line_one(count = 1)
+  def move_line_one(count = 1, is_hold = true)
     current_line = @content.get_line(@point.row)
+    length       = current_line.nil? ? 0 : current_line.length
     if count > 0
       # move down
-      last_col = @content.convert_col_point_into_cursor(@point.row, current_line.length, @window.cols)
+      last_col = @content.convert_col_point_into_cursor(@point.row, length, @window.cols)
       if @point.row == (@content.rows - 1)
         return @point.row if @cursor.turn == (last_col / @window.cols).floor
       end
+      if is_hold
+        @point.col  = @point.hold_col
+        @cursor.col = @cursor.hold_col
+      end
       cols = @window.cols * (@cursor.turn + 1)
       if last_col >= cols
-        move_line_turn_change(count, current_line.length)
+        move_line_turn_change(count, length)
       else
         move_line_row_change(count)
       end
@@ -435,8 +455,12 @@ class Buffer
     if count < 0
       # move up
       return @point.row if (@cursor.full_row + count) < 0
+      if is_hold
+        @point.col  = @point.hold_col
+        @cursor.col = @cursor.hold_col
+      end
       if @cursor.turn > 0
-        move_line_turn_change(count, current_line.length)
+        move_line_turn_change(count, length)
       else
         move_line_row_change(count)
       end
