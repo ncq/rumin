@@ -19,14 +19,30 @@ class KeybindTest < MTest::Unit::TestCase
     keymap = Keymap.new('./test/fixture/keymap.yml')
     keybind = Keybind.new('./test/fixture/keyconfig.rb', keymap)
 
-    assert keybind.key?(0)
+    assert keybind.key?(24)
   end
+
+	def test_valid_nested_key?
+    keymap = Keymap.new('./test/fixture/keymap.yml')
+    keybind = Keybind.new('./test/fixture/keyconfig.rb', keymap)
+	
+		keybind.press(24, MockBuffer.new)
+		assert keybind.key?(1)
+	end
+
+	def test_invalid_nested_key?
+    keymap = Keymap.new('./test/fixture/keymap.yml')
+    keybind = Keybind.new('./test/fixture/keyconfig.rb', keymap)
+	
+		keybind.press(24, MockBuffer.new)
+		assert_equal false, keybind.key?(2)
+	end
 
   def test_press
     keymap = Keymap.new('./test/fixture/keymap.yml')
     keybind = Keybind.new('./test/fixture/keyconfig.rb', keymap)
 
-    assert keybind.press(0, MockBuffer.new)
+    assert keybind.press(1, MockBuffer.new)
   end
 end
 

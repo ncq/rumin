@@ -11,7 +11,7 @@ class Rumin
     # 邪魔だったら削除してください。
     Kernel.instance_eval do
       define_method :debug do |msg|
-        `echo #{msg} >> uesaka.log`
+        `echo '#{msg}' >> uesaka.log`
       end
     end
 

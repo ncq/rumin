@@ -11,12 +11,16 @@ class Command
 
   def evaluate(inputs, buffer)
     input = Utf8Util::convert_utf_code(inputs)
-    if @keybind.key?(input)
+    if input == 1 # 'ctrl-a'でRumin終了
+      0
+    elsif @keybind.key?(input)
       @keybind.press(input, buffer)
+      true
     else
       # input character
       buffer.insert_char(input.chr)
       buffer.display.echo.print_message(input.chr)
+      true
     end
   end
 

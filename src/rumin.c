@@ -49,10 +49,14 @@ int main() {
     mrb_value command_instance = mrb_funcall(mrb, command_value, "new", 0);
 
     mrb_value keys = mrb_ary_new(mrb);
+    mrb_value ret;
     while(1) {
         input_key(mrb, keys);
-        mrb_funcall(mrb, command_instance, "evaluate", 2, keys, buffer_instance);
+        ret = mrb_funcall(mrb, command_instance, "evaluate", 2, keys, buffer_instance);
+        // Rumin終了
+        if(mrb_fixnum(ret) == 0) { break; }
         mrb_funcall(mrb, display_instance, "redisplay", 0);
+
     }
 
     mrb_funcall(mrb, display_instance, "finish", 0);
