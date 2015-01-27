@@ -58,7 +58,7 @@ class Buffer
   end
 
   def insert_char(char)
-    command = InsertChar.new(self, @content, @point)
+    command = InsertChar.new(self, @content, @point, @cursor)
     command.execute(char)
     @history.push(command)
     @is_modified = true
