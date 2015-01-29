@@ -88,3 +88,9 @@ end
 bind %w(ctrl-x ctrl-l) do |b|
   b.insert_evaluated_line_comment
 end
+
+bind %w(ctrl-x ctrl-x) do |b|
+  Qiitan::Client.new.post(b)
+end
+
+

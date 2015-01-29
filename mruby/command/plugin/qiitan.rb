@@ -17,8 +17,11 @@ module Qiitan
       # response = @http_client.post(url, data(buffer), headers)
       # JSON.parse(response.body)['url']
       response = `curl -s -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '#{data(buffer)}'  '#{url}'`
-      JSON.parse(response)['url']
+      url = JSON.parse(response)['url']
+      buffer.display.echo.print_message("URL -> #{url}")
+      url
     rescue => e
+      buffer.display.echo.print_message("failed")
       debug "post error."
       debug e
     end
