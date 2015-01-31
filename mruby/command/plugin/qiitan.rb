@@ -13,21 +13,27 @@ module Qiitan
     def post(buffer)
       url = "#{API_BASE_URL}items?token=#{@token}"
       # 日本語が扱えないー。とりあえずcurlで対処
-      # headers = {'Content-Type' => 'application/json'}
-      # response = @http_client.post(url, data(buffer), headers)
-      # JSON.parse(response.body)['url']
-      response = `curl -s -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '#{data(buffer)}'  '#{url}'`
-      url = JSON.parse(response)['url']
-      buffer.display.echo.print_message("URL -> #{url}")
+      # headers = {
+      #   'Content-Type' => 'application/json; charset=utf-8',
+      #   'Accept' => 'application/json',
+      #   'Accept-Charset' => 'utf-8'
+      # }
+      # response = @http_client.post(url, to_json(buffer), headers)
+      # url = JSON.parse(response.body)['url']
+      response = `curl -s -H "Accept: application/json" -H "Content-type: application/json" -X POST -d '#{to_json(buffer)}'  '#{url}'`
+      response = JSON.parse(response)
+      raise response['error'] if response['error']
+      url = response['url']
+      buffer.display.echo.print_message("success. URL -> #{url}")
       url
     rescue => e
-      buffer.display.echo.print_message("failed")
+      buffer.display.echo.print_message("error.")
       debug "post error."
       debug e
     end
 
     private
-    def data(buffer)
+    def to_json(buffer)
       title = buffer.content.content[0]
       tags = buffer.content.content[1].split(',').map{|x|{name: x}}
       body = buffer.content.content[2..-1].join("\n")
@@ -40,7 +46,7 @@ module Qiitan
       }
       JSON.generate(data)
     rescue => e
-      debug "data error."
+      debug "to_json error."
       debug e
     end
 
