@@ -42,7 +42,7 @@ module Qiitan
         title: title,
         body: body,
         tags: tags,
-        private: false,
+        private: true,
       }
       JSON.generate(data)
     rescue => e
