@@ -2,18 +2,16 @@
 class Rumin
   require './mruby/editor'
 
+
   attr_reader :editor
 
   def initialize
     @editor = Editor.new
+  end
+end
 
-    # どこに置いていいかわからなかったので、とりあえずここに置かせてください。
-    # 邪魔だったら削除してください。
-    Kernel.instance_eval do
-      define_method :debug do |msg|
-        `echo '#{msg}' >> uesaka.log`
-      end
-    end
-
+Kernel.module_eval do
+  def debug(msg)
+    open("uesaka.log", "a"){ |f| f.puts msg }
   end
 end

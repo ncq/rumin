@@ -32,6 +32,18 @@ bind %w(ctrl-f) do |b|
 	b.move_point 1
 end
 
+bind %w(ctrl-u) do |b|
+	b.undo
+end
+
+bind %w(enter) do |b|
+  b.change_line
+end
+
+bind %w(return) do |b|
+  b.change_line
+end
+
 bind %w(ctrl-j) do |b|
   b.change_line
 end
@@ -75,6 +87,10 @@ end
 
 bind %w(ctrl-x ctrl-l) do |b|
   b.insert_evaluated_line_comment
+end
+
+bind %w(ctrl-x ctrl-x) do |b|
+  Qiitan::Client.new.post(b)
 end
 
 bind %w(resize) do |b|
