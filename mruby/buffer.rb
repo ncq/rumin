@@ -9,6 +9,8 @@ class Buffer
   require './mruby/file'
   require './mruby/display'
   require './mruby/history'
+  require './mruby/buffer/insert_char'
+  require './mruby/buffer/change_line'
   require './mruby/window'
 
   attr_accessor :name, :is_modified, :num_chars
