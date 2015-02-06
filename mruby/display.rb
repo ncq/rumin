@@ -9,7 +9,7 @@ class Display
     Curses.cbreak
     Curses.noecho
     Curses.keypad(true)
-    Curses.echoline
+    Curses.echoline(10,3)
     @echo = Echo.new
     true
   end
