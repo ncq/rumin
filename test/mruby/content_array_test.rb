@@ -119,6 +119,13 @@ class ContentArrayTest < MTest::Unit::TestCase
     assert_equal(['abc', 'def', 'ghi'], content.content)
   end
 
+  def test_replace_line
+    content = ContentArray.new(['abc', 'def'])
+    assert_equal(true, content.replace_line(1, 'ghi'))
+    assert_equal(['abc', 'ghi'], content.content)
+    # assert_equal(false, content.replace_line(2, 'ghi'))
+  end
+
   def test_to_string
     content = ContentArray.new(['abc', 'def'])
     assert_equal("abc\ndef", content.to_string)
@@ -158,38 +165,38 @@ class ContentArrayTest < MTest::Unit::TestCase
     assert_equal(['abc', 'def'], content.content)
   end
 
-  def test_convert_point_to_cursor_success
+  def test_convert_col_point_into_cursor_success
     content = ContentArray.new(['abcいろはdef'])
-    assert_equal(2, content.convert_point_to_cursor(0, 2))
-    assert_equal(9, content.convert_point_to_cursor(0, 6))
+    assert_equal(2, content.convert_col_point_into_cursor(0, 2, 80))
+    assert_equal(9, content.convert_col_point_into_cursor(0, 6, 80))
   end
 
-  def test_convert_point_to_cursor_fail
+  def test_convert_col_point_into_cursor_fail
     content = ContentArray.new(['abcいろはdef'])
-    assert_equal(nil, content.convert_point_to_cursor(0, 10))
-    assert_equal(nil, content.convert_point_to_cursor(1, 0))
+    assert_equal(nil, content.convert_col_point_into_cursor(0, 10, 80))
+    assert_equal(nil, content.convert_col_point_into_cursor(1, 0, 80))
   end
 
-  def test_convert_cursor_to_point_success
+  def test_convert_col_cursor_into_point_success
     content = ContentArray.new(['abcいろはdef'])
-    assert_equal(2, content.convert_cursor_to_point(0, 2, 2))
-    assert_equal(6, content.convert_cursor_to_point(0, 6, 9))
+    assert_equal(2, content.convert_col_cursor_into_point(0, 2, 2, 80))
+    assert_equal(6, content.convert_col_cursor_into_point(0, 6, 9, 80))
   end
 
-  def test_convert_cursor_to_point_fail
+  def test_convert_col_cursor_into_point_fail
     content = ContentArray.new(['abcいろはdef'])
-    assert_equal(nil, content.convert_cursor_to_point(0, 10, 10))
-    assert_equal(nil, content.convert_cursor_to_point(1, 0, 0))
-    assert_equal(nil, content.convert_cursor_to_point(0, 4, 6))
+    assert_equal(nil, content.convert_col_cursor_into_point(0, 10, 10, 80))
+    assert_equal(nil, content.convert_col_cursor_into_point(1, 0, 0, 80))
+    assert_equal(nil, content.convert_col_cursor_into_point(0, 4, 6, 80))
   end
 
-  def test_adjust_cursor_col_zero
+  def test_adjust_cursor_col
     content = ContentArray.new(['abcいろはdef', ''])
-    assert_equal(5, content.adjust_cursor_col(0, 5))
-    assert_equal(5, content.adjust_cursor_col(0, 6))
-    assert_equal(12, content.adjust_cursor_col(0, 15))
-    assert_equal(0, content.adjust_cursor_col(1, 2))
-    assert_equal(0, content.adjust_cursor_col(2, 2))
+    assert_equal(5, content.adjust_cursor_col(0, 5, 80))
+    assert_equal(5, content.adjust_cursor_col(0, 6, 80))
+    assert_equal(12, content.adjust_cursor_col(0, 15, 80))
+    assert_equal(0, content.adjust_cursor_col(1, 2, 80))
+    assert_equal(0, content.adjust_cursor_col(2, 2, 80))
   end
 
   def test_search_forward

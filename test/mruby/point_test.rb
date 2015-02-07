@@ -5,6 +5,7 @@ class PointTest < MTest::Unit::TestCase
     point = Point.new
     assert_equal(0, point.row)
     assert_equal(0, point.col)
+    assert_equal(0, point.hold_col)
   end
 
   def test_set_point

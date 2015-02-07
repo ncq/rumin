@@ -1,12 +1,13 @@
 class BufferTest < MTest::Unit::TestCase
   require './mruby/buffer'
+  require './mruby/window'
 
   def teardown
     Curses::endwin
   end
 
   def test_initialize
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     assert_equal(false, buffer.is_modified)
     assert_equal('test', buffer.name)
     assert_equal(0, buffer.num_chars)
@@ -14,19 +15,19 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_get_cursor_row
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.cursor.set_position(2, 0)
     assert_equal(2, buffer.get_cursor_row)
   end
 
   def test_get_cursor_col
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.cursor.set_position(0, 2)
     assert_equal(2, buffer.get_cursor_col)
   end
 
   def test_get_char
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.point.set_point(0, 0)
     assert_equal('a', buffer.get_char)
@@ -35,7 +36,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_get_string
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.point.set_point(0, 0)
     assert_equal('abc', buffer.get_string(3))
@@ -45,7 +46,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_get_content
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('def')
@@ -53,7 +54,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_insert_char_first
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     assert_equal(true, buffer.insert_char('a'))
     assert_equal('a', buffer.get_content)
     assert_equal(0, buffer.point.row)
@@ -63,7 +64,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_insert_char_second
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_char('a')
     assert_equal(true, buffer.insert_char('b'))
     assert_equal('ab', buffer.get_content)
@@ -73,7 +74,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_insert_string_first
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     assert_equal(true, buffer.insert_string('abc'))
     assert_equal('abc', buffer.get_content)
     assert_equal(0, buffer.point.row)
@@ -83,7 +84,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_insert_string_second
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     assert_equal(true, buffer.insert_string('def'))
     assert_equal('abcdef', buffer.get_content)
@@ -93,7 +94,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_delete_char
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('def')
@@ -105,7 +106,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_delete_merge_line
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('def')
@@ -118,18 +119,18 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_modified_true
-    buffer = Buffer.new('test')
-    assert_equal(false, buffer.modified?)
-  end
-
-  def test_modified_false
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_char('a')
     assert_equal(true, buffer.modified?)
   end
 
+  def test_modified_false
+    buffer = create_buffer
+    assert_equal(false, buffer.modified?)
+  end
+
   def test_move_point_default
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('def')
@@ -142,7 +143,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_move_point_target
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('xyz')
@@ -154,20 +155,66 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_move_point_not_move
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('xyz')
     buffer.move_point(-1)
-    assert_equal(2, buffer.move_point(2))
+    assert_equal(3, buffer.move_point(2))
     assert_equal(1, buffer.point.row)
-    assert_equal(2, buffer.point.col)
+    assert_equal(3, buffer.point.col)
     assert_equal(1, buffer.cursor.row)
-    assert_equal(2, buffer.cursor.col)
+    assert_equal(3, buffer.cursor.col)
+  end
+
+  def test_move_point_turn
+    buffer = Buffer.new('test')
+    window = Window.new(0, 0, 20, 40, buffer)
+    buffer.insert_string('a' * 50)
+    # move to prev turn
+    assert_equal(30, buffer.move_point(-20))
+    assert_equal(0, buffer.point.row)
+    assert_equal(30, buffer.point.col)
+    assert_equal(0, buffer.cursor.row)
+    assert_equal(30, buffer.cursor.col)
+    assert_equal(0, buffer.cursor.turn)
+    # move to next turn
+    assert_equal(45, buffer.move_point(15))
+    assert_equal(0, buffer.point.row)
+    assert_equal(45, buffer.point.col)
+    assert_equal(1, buffer.cursor.row)
+    assert_equal(5, buffer.cursor.col)
+    assert_equal(1, buffer.cursor.turn)
+  end
+
+  def test_move_point_to_next_row
+    buffer = create_buffer
+    buffer.insert_string('abc')
+    buffer.change_line
+    buffer.insert_string('xyz')
+    buffer.move_line(-1)
+    assert_equal(0, buffer.move_point(1))
+    assert_equal(1, buffer.point.row)
+    assert_equal(0, buffer.point.col)
+    assert_equal(1, buffer.cursor.row)
+    assert_equal(0, buffer.cursor.col)
+  end
+
+  def test_move_point_to_prev_row
+    buffer = create_buffer
+    buffer.insert_string('abc')
+    buffer.change_line
+    buffer.insert_string('xyz')
+    buffer.move_point(-3)
+    assert_equal(3, buffer.move_point(-1))
+    assert_equal(0, buffer.point.row)
+    assert_equal(3, buffer.point.col)
+    assert_equal(0, buffer.cursor.row)
+    assert_equal(3, buffer.cursor.col)
   end
 
   def test_move_line_default
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('defg')
@@ -179,12 +226,11 @@ class BufferTest < MTest::Unit::TestCase
     assert_equal(2, buffer.move_line())
     assert_equal(2, buffer.point.row)
     assert_equal(3, buffer.point.col)
-    assert_equal(2, buffer.cursor.row)
     assert_equal(3, buffer.cursor.col)
   end
 
   def test_move_line_target
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('defg')
@@ -200,7 +246,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_move_line_not_move
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abc')
     buffer.change_line
     buffer.insert_string('defg')
@@ -209,15 +255,78 @@ class BufferTest < MTest::Unit::TestCase
     buffer.change_line
     buffer.insert_string('lmn')
     buffer.move_line(-1)
-    assert_equal(2, buffer.move_line(2))
-    assert_equal(2, buffer.point.row)
+    assert_equal(3, buffer.move_line(2))
+    assert_equal(3, buffer.point.row)
     assert_equal(3, buffer.point.col)
-    assert_equal(2, buffer.cursor.row)
+    assert_equal(3, buffer.cursor.row)
     assert_equal(3, buffer.cursor.col)
   end
 
-  def test_change_line
+  def test_move_line_with_turn_to_next
     buffer = Buffer.new('test')
+    window = Window.new(0, 0, 20, 40, buffer)
+    buffer.insert_string('a' * 52)
+    buffer.change_line
+    buffer.insert_string('b' * 50)
+    buffer.change_line
+    buffer.insert_string('c' * 52)
+    buffer.move_line(-5)
+    # move to next turn
+    assert_equal(0, buffer.move_line(1))
+    assert_equal(0, buffer.point.row)
+    assert_equal(52, buffer.point.col)
+    assert_equal(1, buffer.cursor.row)
+    assert_equal(12, buffer.cursor.col)
+    assert_equal(1, buffer.cursor.turn)
+    # move to next row
+    assert_equal(1, buffer.move_line(1))
+    assert_equal(1, buffer.point.row)
+    assert_equal(12, buffer.point.col)
+    assert_equal(2, buffer.cursor.row)
+    assert_equal(12, buffer.cursor.col)
+    assert_equal(0, buffer.cursor.turn)
+    # move to next row multi
+    assert_equal(2, buffer.move_line(2))
+    assert_equal(2, buffer.point.row)
+    assert_equal(12, buffer.point.col)
+    assert_equal(4, buffer.cursor.row)
+    assert_equal(12, buffer.cursor.col)
+    assert_equal(0, buffer.cursor.turn)
+  end
+
+  def test_move_line_with_turn_to_prev
+    buffer = Buffer.new('test')
+    window = Window.new(0, 0, 20, 40, buffer)
+    buffer.insert_string('a' * 52)
+    buffer.change_line
+    buffer.insert_string('b' * 50)
+    buffer.change_line
+    buffer.insert_string('c' * 52)
+    # move to prev turn
+    assert_equal(2, buffer.move_line(-1))
+    assert_equal(2, buffer.point.row)
+    assert_equal(12, buffer.point.col)
+    assert_equal(4, buffer.cursor.row)
+    assert_equal(12, buffer.cursor.col)
+    assert_equal(0, buffer.cursor.turn)
+    # move to prev row
+    assert_equal(1, buffer.move_line(-1))
+    assert_equal(1, buffer.point.row)
+    assert_equal(50, buffer.point.col)
+    assert_equal(3, buffer.cursor.row)
+    assert_equal(10, buffer.cursor.col)
+    assert_equal(1, buffer.cursor.turn)
+    # move to prev row multi
+    assert_equal(0, buffer.move_line(-2))
+    assert_equal(0, buffer.point.row)
+    assert_equal(52, buffer.point.col)
+    assert_equal(1, buffer.cursor.row)
+    assert_equal(12, buffer.cursor.col)
+    assert_equal(1, buffer.cursor.turn)
+  end
+
+  def test_change_line
+    buffer = create_buffer
     buffer.insert_string('abcdefg')
     buffer.move_point(-4)
     assert_equal(2, buffer.change_line)
@@ -230,7 +339,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_delete_line_first
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abcd')
     buffer.change_line
     buffer.insert_string('efg')
@@ -242,11 +351,11 @@ class BufferTest < MTest::Unit::TestCase
     assert_equal(2, buffer.num_lines)
     assert_equal(7, buffer.num_chars)
     assert_equal(0, buffer.point.row)
-    assert_equal(3, buffer.point.col)
+    assert_equal(4, buffer.point.col)
   end
 
   def test_delete_line_middle
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abcd')
     buffer.change_line
     buffer.insert_string('efg')
@@ -262,7 +371,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_delete_line_last
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abcd')
     buffer.change_line
     buffer.insert_string('efg')
@@ -299,7 +408,7 @@ class BufferTest < MTest::Unit::TestCase
 =end
 
   def test_copy_string
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abcd')
     buffer.copy_mark.set_location(0, 1)
     buffer.copy
@@ -311,7 +420,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_copy_string_region
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abcd')
     buffer.change_line
     buffer.insert_string('efgh')
@@ -330,7 +439,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_copy_string_region2
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abcd')
     buffer.change_line
     buffer.copy_mark.set_location(0, 1)
@@ -339,7 +448,8 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_paste_string2
-    buffer = Buffer.new('test')
+    buffer = create_buffer
+    buffer.insert_string('abcd')
     buffer.insert_string('abcd')
     buffer.change_line
     buffer.copy_mark.set_location(0, 1)
@@ -349,7 +459,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_paste_string
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('abcd')
     buffer.change_line
     buffer.insert_string('efgh')
@@ -362,7 +472,7 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_store_select
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('1 + 1')
     buffer.store_select(buffer.evaluate_mark, buffer.evaluate)
     assert_equal("1 + 1", buffer.evaluate.content[0])
@@ -374,19 +484,19 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_eval_content
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('1 + 1')
     assert_equal(2, buffer.eval_content)
   end
 
   def test_insert_evaluated_content_comment
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('1 + 1')
     buffer.insert_string(' ')
     buffer.insert_evaluated_content_comment
     assert_equal('1 + 1 # => 2', buffer.content.to_string)
 
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string('a + 1')
     buffer.insert_string(' ')
     buffer.insert_evaluated_content_comment
@@ -394,14 +504,14 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_insert_evaluated_line_comment
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string("hoge")
     buffer.change_line
     buffer.insert_string("1 + 1")
     buffer.insert_evaluated_line_comment
     assert_equal("hoge\n1 + 1 # => 2", buffer.get_content)
 
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.insert_string("hoge")
     buffer.change_line
     buffer.insert_string("1 + a")
@@ -413,7 +523,7 @@ class BufferTest < MTest::Unit::TestCase
     test_file_name = './test/fixture/test.txt'#'./test/fixture/buffer_read.txt'
     `touch #{test_file_name}`
     `echo "test\ntest" > #{test_file_name}`
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.set_file_name(test_file_name)
     assert_equal(true, buffer.read_file)
     assert_equal("test\ntest", buffer.get_content)
@@ -421,7 +531,7 @@ class BufferTest < MTest::Unit::TestCase
 
   def test_write_file
     test_file_name = './test/fixture/buffer_write.txt'
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.set_file_name(test_file_name)
     buffer.insert_string('test\n')
     assert_equal(true, buffer.write_file)
@@ -434,19 +544,35 @@ class BufferTest < MTest::Unit::TestCase
   def test_is_file_changed?
     test_file_name = './test/fixture/buffer_changed.txt'
     `touch #{test_file_name}`
-    buffer = Buffer.new('test')
+    buffer = create_buffer
     buffer.set_file_name(test_file_name)
     assert_equal(false, buffer.is_file_changed?)
   end
 
-  def test_print_message
+  def test_set_window
     buffer = Buffer.new('test')
+    window = Window.new(0, 10, 40, 80, buffer)
+    buffer.set_window(buffer)
+    assert_equal(window, buffer.window)
+    assert_false(buffer.set_window(nil))
+  end
+
+  def test_window_resize
+    pass('This method is unable to unit test because this method use Curses.')
+  end
+
+  def test_print_message
+    buffer  = create_buffer
+    display = Display.new
+    buffer.set_display(display)
     buffer.display.echo.print_message("hoge")
     assert_equal("hoge", buffer.display.echo.output)
   end
 
   def test_search_forward
-    buffer = Buffer.new('test')
+    buffer  = create_buffer
+    display = Display.new
+    buffer.set_display(display)
     mock   = Mocks::Mock.new
     mock.stubs(:print_message).returns(true)
     mock.stubs(:get_parameter).returns('abc')
@@ -473,7 +599,9 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_search_backward
-    buffer = Buffer.new('test')
+    buffer  = create_buffer
+    display = Display.new
+    buffer.set_display(display)
     mock   = Mocks::Mock.new
     mock.stubs(:print_message).returns(true)
     mock.stubs(:get_parameter).returns('abc')
@@ -497,6 +625,11 @@ class BufferTest < MTest::Unit::TestCase
     assert_false(buffer.search_backward(:last))
   end
 
+  def create_buffer(name = 'test')
+    buffer = Buffer.new(name)
+    window = Window.new(0, 0, 40, 80, buffer)
+    buffer
+  end
 end
 
 MTest::Unit.new.run

@@ -1,6 +1,9 @@
+require './mruby/window'
+require './mruby/echo_line'
+require './mruby/screen'
+
 class Display
-  require './mruby/window'
-  require './mruby/echo_line'
+  attr_reader :screen
   attr_accessor :echo
   def initialize
     @window_list = []
@@ -8,7 +11,8 @@ class Display
     Curses.cbreak
     Curses.noecho
     Curses.keypad(true)
-    Curses.echoline
+    @screen = Screen.new
+    Curses.echoline((@screen.rows - 1), 3)
     @echo = Echo.new
     Curses.start_color()
     Curses.init_pair(1, Curses::COLOR_BLUE, Curses::COLOR_WHITE)
@@ -26,7 +30,7 @@ class Display
   end
 
   def create_window(buffer)
-    window = Window.new(buffer)
+    window = Window.new(0, 0, @screen.rows, @screen.cols, buffer)
     @window_list << window
     window
   end
@@ -34,40 +38,68 @@ class Display
   def redisplay
     clear_screen
     @window_list.each do |window|
-      buffer     = window.buffer
-      content    = buffer.content.content
-      cursor_row = buffer.cursor.row
-      cursor_col = buffer.cursor.col
-      color_map  = buffer.content.color_map.color_map
-      content.each_with_index do |line, row|
-        buffer.cursor.set_position(row, 0)
-        colors = color_map[row]
-        if colors.size > 0
-          col    = 0
-          length = line.length
-          while (col < length) do
-            color = colors[0]
-            if color > 0
-              Curses.coloron(color)
-            end
-            index = colors.find_index{|code| code != color }
-            if index.nil?
-              insert_string(line[col, (line.length - col)])
-              col = line.length
-            else
-              insert_string(line[col, index])
-              colors = colors[index, (colors.size - index)]
-              col = col + index
-            end
-            if color > 0
-              Curses.coloroff(color)
-            end
-          end
+      buffer      = window.buffer
+      content     = buffer.content.content[window.start_row, window.rows]
+      current_col = buffer.cursor.col
+      current_row = buffer.cursor.row
+      start_turn  = window.start_turn
+      color_map   = buffer.content.color_map.color_map
+      row_p       = window.start_row
+      row_c       = 0
+      keep_color  = 0
+      content.each do |line|
+        break if row_c == window.rows
+        if line == ""
+          row_p += 1
+          row_c += 1
         else
-          insert_string(line)
+          col_c  = 0
+          col_p  = 0
+          str    = ""
+          colors = color_map[row_p]
+          buffer.cursor.set_position(row_c, 0)
+          line.each_char do |char|
+            next if row_c == window.rows
+            color = colors[col_p]
+            if color != keep_color
+              # change color
+              insert_string(str)
+              str = ""
+              Curses.coloroff(keep_color) if keep_color > 0
+              Curses.coloron(color) if color > 0
+              keep_color = color
+            end
+            step = Utf8Util::full_width?(char) ? 2 : 1
+            col_c += step
+            str << char if col_c <= window.cols
+            if col_c >= window.cols
+              # word wrap
+              if start_turn > 0
+                start_turn -= 1
+              else
+                insert_string(str)
+                row_c += 1
+                buffer.cursor.set_position(row_c, 0)
+              end
+              if col_c == window.cols
+                col_c = 0
+                str = ""
+              else
+                col_c = 2
+                str = char
+              end
+            end
+            col_p += 1
+          end
+          if row_c < window.rows && str.length > 0
+            insert_string(str)
+            row_c += 1
+          end
+          row_p += 1
         end
       end
-      buffer.cursor.set_position(cursor_row, cursor_col)
+      Curses.coloroff(keep_color) if keep_color > 0
+      buffer.cursor.set_position(current_row, current_col)
     end
     @echo.print
   end
@@ -75,13 +107,4 @@ class Display
   def insert_string(str)
     Curses.addstr(str)
   end
-
-  def get_echo
-    @echo_line.line
-  end
-
-  def set_echo(str)
-    @echo_line.line = str
-  end
-
 end
