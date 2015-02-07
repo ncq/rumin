@@ -10,8 +10,8 @@ class Display
     Curses.cbreak
     Curses.noecho
     Curses.keypad(true)
-    Curses.echoline
     @screen = Screen.new
+    Curses.echoline((@screen.rows - 1), 3)
     @echo = Echo.new
     true
   end
