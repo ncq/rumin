@@ -93,6 +93,22 @@ bind %w(ctrl-x ctrl-x) do |b|
   Qiitan::Client.new.post(b)
 end
 
+bind %w(ctrl-w ctrl-n) do |b|
+  b.search_forward(:new)
+end
+
+bind %w(ctrl-w ctrl-l) do |b|
+  b.search_forward(:last)
+end
+
+bind %w(ctrl-r ctrl-n) do |b|
+  b.search_backward(:new)
+end
+
+bind %w(ctrl-r ctrl-l) do |b|
+  b.search_backward(:last)
+end
+
 bind %w(resize) do |b|
   b.resize_window
 end

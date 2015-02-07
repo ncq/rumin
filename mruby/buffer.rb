@@ -34,6 +34,7 @@ class Buffer
     @evaluate = ContentArray.new
     @evaluate_mark = Mark.new(@point)
     @history = History.new
+    @last_pattern = nil
   end
 
   def set_display(display)
@@ -230,6 +231,14 @@ class Buffer
       line = "#{line} # => error: #{e.message}"
     end
     @content.content[row] = line
+  end
+
+  def search_forward(type)
+    search_content(:forward, type)
+  end
+
+  def search_backward(type)
+    search_content(:backward, type)
   end
 
   def set_window(window)
@@ -554,5 +563,45 @@ class Buffer
     set_file_name(@display.echo.get_parameter("Save:"))
     write_file
     @display.echo.print_message("Save \"" + @file_name + "\"")
+  end
+
+  def search_content(direction, type)
+    if type == :new
+      print_echo("                   ")
+      pattern = @display.echo.get_parameter("what's pattern?:")
+      @last_pattern = pattern
+    else
+      pattern = @last_pattern
+    end
+    if pattern.nil? || pattern.length == 0
+      print_echo("pattern not inputed")
+      return false
+    end
+    if direction == :forward
+      match_point = @content.search_forward(pattern, @point.row, (@point.col + 1))
+    else
+      match_point = @content.search_backward(pattern, @point.row, (@point.col - 1))
+    end
+    if match_point.nil?
+      print_echo("pattern not matched")
+      return false
+    end
+    print_echo("pattern matched")
+
+    # move match point
+    before_full_row = @cursor.full_row
+    @point.set_point(match_point[:row], match_point[:col])
+    @point.hold_col = @point.col
+    full_col = @content.convert_col_point_into_cursor(@point.row, @point.col, @window.cols)
+    turn     = (full_col  / @window.cols).floor
+    full_row = @content.convert_row_point_into_cursor(@point.row, @window.cols) + turn
+    diff     = full_row - before_full_row
+    @cursor.set_position((@cursor.row + diff), (full_col % @window.cols))
+    @cursor.turn = turn
+    @cursor.full_row = full_row
+    @cursor.full_col = full_col
+    @cursor.hold_col = @cursor.col
+    scroll_window_line(diff)
+    true
   end
 end

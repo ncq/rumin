@@ -46,6 +46,11 @@ class ContentArrayTest < MTest::Unit::TestCase
     assert_equal(nil, content.get_line(2))
   end
 
+  def test_get_color_map
+    content = ContentArray.new(['abc', 'def'])
+    assert_equal([[0, 0, 0], [0, 0, 0]], content.get_color_map)
+  end
+
   def test_rows
     content = ContentArray.new(['abc', 'def'])
     assert_equal(2, content.rows)
@@ -54,7 +59,9 @@ class ContentArrayTest < MTest::Unit::TestCase
   def test_insert_char_success
     content = ContentArray.new(['abc', 'def'])
     assert_equal('agbc', content.insert_char('g', 0, 1))
+    assert_equal([[0, 0, 0, 0], [0, 0, 0]], content.get_color_map)
     assert_equal('hdef', content.insert_char('h', 1, 0))
+    assert_equal([[0, 0, 0, 0], [0, 0, 0, 0]], content.get_color_map)
   end
 
   def test_insert_char_fail
@@ -66,7 +73,9 @@ class ContentArrayTest < MTest::Unit::TestCase
   def test_insert_string_success
     content = ContentArray.new(['abc', 'def'])
     assert_equal('aghbc', content.insert_string('gh', 0, 1))
+    assert_equal([[0, 0, 0, 0, 0], [0, 0, 0]], content.get_color_map)
     assert_equal('ijkdef', content.insert_string('ijk', 1, 0))
+    assert_equal([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]], content.get_color_map)
   end
 
   def test_insert_string_fail
@@ -79,8 +88,10 @@ class ContentArrayTest < MTest::Unit::TestCase
     content = ContentArray.new(['abc', 'def'])
     assert_equal(true, content.change_line(1, 2))
     assert_equal(['abc', 'de', 'f'], content.content)
+    assert_equal([[0, 0, 0], [0, 0], [0]], content.get_color_map)
     assert_equal(true, content.change_line(0, 0))
     assert_equal(['', 'abc', 'de', 'f'], content.content)
+    assert_equal([[], [0, 0, 0], [0, 0], [0]], content.get_color_map)
   end
 
   def test_change_line_fail
@@ -93,10 +104,13 @@ class ContentArrayTest < MTest::Unit::TestCase
     content = ContentArray.new(['abc', 'def', 'ghi'])
     assert_equal(true, content.delete_line(1))
     assert_equal(['abc', 'ghi'], content.content)
+    assert_equal([[0, 0, 0], [0, 0, 0]], content.get_color_map)
     assert_equal(true, content.delete_line(0))
     assert_equal(['ghi'], content.content)
+    assert_equal([[0, 0, 0]], content.get_color_map)
     assert_equal(true, content.delete_line(0))
     assert_equal([''], content.content)
+    assert_equal([[]], content.get_color_map)
   end
 
   def test_delete_line_fail
@@ -120,8 +134,11 @@ class ContentArrayTest < MTest::Unit::TestCase
   def test_delete_char_success
     content = ContentArray.new(['abcd', 'efgh', 'hijk'])
     assert_equal("ad", content.delete_char(2, 0, 1))
+    assert_equal([[0, 0], [0, 0, 0, 0], [0, 0, 0, 0]], content.get_color_map)
     assert_equal("eh", content.delete_char(-2, 1, 3))
+    assert_equal([[0, 0], [0, 0], [0, 0, 0, 0]], content.get_color_map)
     assert_equal("jk", content.delete_char(-4, 2, 2))
+    assert_equal([[0, 0], [0, 0], [0, 0]], content.get_color_map)
   end
 
   def test_delete_char_fail
@@ -134,8 +151,10 @@ class ContentArrayTest < MTest::Unit::TestCase
     content = ContentArray.new(['abc', 'def', 'ghi', 'jkl'])
     content.merge_line(-1, 1)
     assert_equal(['abcdef', 'ghi', 'jkl'], content.content)
+    assert_equal([[0, 0, 0, 0, 0, 0], [0, 0, 0], [0, 0, 0]], content.get_color_map)
     content.merge_line(-2, 2)
     assert_equal(['abcdefghijkl'], content.content)
+    assert_equal([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], content.get_color_map)
   end
 
   def test_merge_line_fail
@@ -179,6 +198,53 @@ class ContentArrayTest < MTest::Unit::TestCase
     assert_equal(0, content.adjust_cursor_col(1, 2, 80))
     assert_equal(0, content.adjust_cursor_col(2, 2, 80))
   end
+
+  def test_search_forward
+    content = ContentArray.new(['12abc', '3456abc'])
+    # first search
+    assert_equal({row:0, col:2}, content.search_forward('abc', 0, 0))
+    assert_equal([[0, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0]], content.get_color_map)
+    assert_equal({st_row:0, st_col:2, ed_row:0, ed_col:4}, content.last_match)
+    # second search
+    assert_equal({row:1, col:4}, content.search_forward('abc', 0, 3))
+    assert_equal([[0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1]], content.get_color_map)
+    assert_equal({st_row:1, st_col:4, ed_row:1, ed_col:6}, content.last_match)
+    # not found
+    assert_equal(nil, content.search_forward('abc', 1, 5))
+    assert_equal([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], content.get_color_map)
+    assert_equal(nil, content.last_match)
+    # row > size
+    assert_equal(nil, content.search_forward('abc', 2, 0))
+    assert_equal([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], content.get_color_map)
+    assert_equal(nil, content.last_match)
+  end
+
+  def test_search_backward
+    content = ContentArray.new(['12abc', '3456abc'])
+    # first search
+    assert_equal({row:0, col:2}, content.search_backward('abc', 1, 0))
+    assert_equal([[0, 0, 1, 1, 1], [0, 0, 0, 0, 0, 0, 0]], content.get_color_map)
+    assert_equal({st_row:0, st_col:2, ed_row:0, ed_col:4}, content.last_match)
+    # second search
+    assert_equal({row:1, col:4}, content.search_backward('abc', 1, 7))
+    assert_equal([[0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 1, 1]], content.get_color_map)
+    assert_equal({st_row:1, st_col:4, ed_row:1, ed_col:6}, content.last_match)
+    # not found
+    assert_equal(nil, content.search_backward('abc', 0, 3))
+    assert_equal([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], content.get_color_map)
+    assert_equal(nil, content.last_match)
+    # row > size
+    assert_equal(nil, content.search_backward('abc', 2, 0))
+    assert_equal([[0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]], content.get_color_map)
+    assert_equal(nil, content.last_match)
+  end
+
+  def test_change_color_map
+    content = ContentArray.new(['abc', 'def'])
+    assert_true(content.change_color_map(1, 0, 1, 1, 1))
+    assert_equal([[0, 1, 1], [1, 1, 0]], content.get_color_map)
+  end
+
 end
 
 MTest::Unit.new.run

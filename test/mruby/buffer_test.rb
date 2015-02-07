@@ -562,9 +562,67 @@ class BufferTest < MTest::Unit::TestCase
   end
 
   def test_print_message
-    buffer = Buffer.new('test')
+    buffer  = create_buffer
+    display = Display.new
+    buffer.set_display(display)
     buffer.display.echo.print_message("hoge")
     assert_equal("hoge", buffer.display.echo.output)
+  end
+
+  def test_search_forward
+    buffer  = create_buffer
+    display = Display.new
+    buffer.set_display(display)
+    mock   = Mocks::Mock.new
+    mock.stubs(:print_message).returns(true)
+    mock.stubs(:get_parameter).returns('abc')
+    buffer.display.echo = mock
+    buffer.insert_string('12abc')
+    buffer.change_line
+    buffer.insert_string('3456abc')
+    # point at 0, 0
+    buffer.move_point(-7)
+    buffer.move_line(-1)
+    assert_true(buffer.search_forward(:new))
+    assert_equal(0, buffer.point.row)
+    assert_equal(2, buffer.point.col)
+    assert_equal(0, buffer.cursor.row)
+    assert_equal(2, buffer.cursor.col)
+    # point at 0, 2
+    assert_true(buffer.search_forward(:last))
+    assert_equal(1, buffer.point.row)
+    assert_equal(4, buffer.point.col)
+    assert_equal(1, buffer.cursor.row)
+    assert_equal(4, buffer.cursor.col)
+    # point at 1, 4
+    assert_false(buffer.search_forward(:last))
+  end
+
+  def test_search_backward
+    buffer  = create_buffer
+    display = Display.new
+    buffer.set_display(display)
+    mock   = Mocks::Mock.new
+    mock.stubs(:print_message).returns(true)
+    mock.stubs(:get_parameter).returns('abc')
+    buffer.display.echo = mock
+    buffer.insert_string('12abc')
+    buffer.change_line
+    buffer.insert_string('3456abc')
+    # point at 1, 8
+    assert_true(buffer.search_backward(:new))
+    assert_equal(1, buffer.point.row)
+    assert_equal(4, buffer.point.col)
+    assert_equal(1, buffer.cursor.row)
+    assert_equal(4, buffer.cursor.col)
+    # point at 1, 4
+    assert_true(buffer.search_backward(:last))
+    assert_equal(0, buffer.point.row)
+    assert_equal(2, buffer.point.col)
+    assert_equal(0, buffer.cursor.row)
+    assert_equal(2, buffer.cursor.col)
+    # point at 0, 2
+    assert_false(buffer.search_backward(:last))
   end
 
   def create_buffer(name = 'test')
