@@ -1,9 +1,13 @@
 class Point
-  attr_accessor :row, :col
+  attr_accessor :row, :col, :hold_col
 
   def initialize
-    @row = 0
-    @col = 0
+    # point row(Y position)
+    @row      = 0
+    # point col(X position)
+    @col      = 0
+    # hold col when a row has changed
+    @hold_col = 0
   end
 
   def set_point(row, col)

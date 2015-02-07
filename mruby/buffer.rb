@@ -11,9 +11,13 @@ class Buffer
   require './mruby/history'
   require './mruby/buffer/insert_char'
   require './mruby/buffer/change_line'
+  require './mruby/window'
 
-  attr_accessor :name, :num_chars
-  attr_reader :start, :end, :file_name, :content, :num_chars, :num_lines, :point, :cursor, :clipboard, :copy_mark, :evaluate, :evaluate_mark, :display, :contents
+  attr_accessor :name, :is_modified, :num_chars
+  attr_reader :start, :end, :file_name, :content, :num_lines,
+              :point, :cursor, :clipboard, :copy_mark, :evaluate,
+              :evaluate_mark, :display, :contents, :window
+
   def initialize(name)
     @name = name
     # TODO:want to better content structure
@@ -29,8 +33,12 @@ class Buffer
     #@clipboard = ContentArray.new
     @evaluate = ContentArray.new
     @evaluate_mark = Mark.new(@point)
-    @display = Display.new
     @history = History.new
+  end
+
+  def set_display(display)
+    return false unless display.is_a?(Display)
+    @display = display
   end
 
   def print_echo(str)
@@ -58,14 +66,18 @@ class Buffer
   end
 
   def insert_char(char)
-    command = InsertChar.new(self, @content, @point, @cursor)
-    command.execute(char)
-    @history.push(command)
+    # command = InsertChar.new(self, @content, @point, @cursor)
+    # command.execute(char)
+    # @history.push(command)
+    @content.insert_char(char, @point.row, @point.col)
+    move_point(1)
+    @num_chars += 1
     @is_modified = true
+    true
   end
 
   def insert_string(str)
-    @history.push(self.get_content)
+    # @history.push(self.get_content)
     @content.insert_string(str, @point.row, @point.col)
     move_point(str.length)
     @num_chars += str.length
@@ -74,7 +86,7 @@ class Buffer
   end
 
   def delete(count)
-    @history.push(self.get_content)
+    # @history.push(self.get_content)
     count = count.to_i
     if count < 0 && (@point.col - count.abs) < 0
       merge_line(-1)
@@ -88,59 +100,60 @@ class Buffer
   end
 
   def move_point(count = 1)
-    # not move if string not exist at destination
-    col_p = @point.col + count
-    line  = @content.get_line(@point.row)
-    return @point.col if (col_p < 0 || col_p > line.length)
-    @point.move_point(count)
-    col_c = @content.convert_point_to_cursor(@point.row, @point.col)
-    @cursor.set_position(@point.row, col_c)
-    @display.echo.print_message("move point")
-    col_p
+    step = (count > 0) ? 1 : -1
+    count.abs.times { |i| move_point_one(step) }
+    @point.hold_col  = @point.col
+    @cursor.hold_col = @cursor.col
+    @point.col
   end
 
-  def move_line(count = 1)
-    # not move if string not exist at destination
-    row = @point.row + count
-    return @point.row if (row < 0 || row > (@content.rows - 1))
-    # move to line's last if row is bigger than line length
-    line   = @content.get_line(row)
-    length = line.nil? ? 0 : line.length
-    # adjust difference between half-byte and full-byte
-    cursor_col = @content.adjust_cursor_col(row, @cursor.col)
-    @cursor.set_position(row, cursor_col)
-    @point.set_point(row, @content.convert_cursor_to_point(row, length, cursor_col))
-    @display.echo.print_message("move line")
-    row
+  def move_line(count = 1, is_hold = true)
+    step = (count > 0) ? 1 : -1
+    count.abs.times { |i| move_line_one(step, is_hold) }
+    @point.row
   end
 
   def change_line()
-    command = ChangeLine.new(self, @content, @point, @cursor)
-    command.execute
-    @history.push(command)
-    @is_modified = true
-=begin
+    # command = ChangeLine.new(self, @content, @point, @cursor)
+    # command.execute
+    # @history.push(command)
+    # @is_modified = true
     @content.change_line(@point.row, @point.col)
     @point.set_point((@point.row + 1), 0)
-    @cursor.set_position(@point.row, @point.col)
+    @point.hold_col = 0
+    cursor_row = (@cursor.col == 0 && @cursor.turn > 0) ? @cursor.row : @cursor.row + 1
+    @cursor.set_position(cursor_row, 0)
+    @cursor.turn     = 0
+    @cursor.full_col = 0
+    @cursor.full_row = @cursor.full_row + 1
+    @cursor.hold_col = 0
+    scroll_window_line(1)
+    @is_modified = true
     @num_lines += 1
-=end
   end
 
   def delete_line()
-    @history.push(self.get_content)
+    # @history.push(self.get_content)
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length
     @content.delete_line(@point.row)
-    if @content.rows == 0
+    if @content.rows == 1 && @content.get_line(@point.row) == ''
       @point.set_point(0, 0)
+      @point.hold_col = 0
       @cursor.set_position(0, 0)
-    else
-      if @point.row >= @content.rows
-        move_line(-1)
-      else
-        move_line(0)
+      @cursor.turn     = 0
+      @cursor.full_row = 0
+      @cursor.full_col = 0
+      @cursor.hold_col = 0
+    elsif @point.row >= @content.rows
+      old_col_p = @point.col
+      old_col_c = @cursor.col
+      if @cursor.turn > 0
+        @cursor.turn.times { |i| move_line_turn_change(-1, old_length) }
+        @point.set_point(@point.row, old_col_p)
+        @cursor.set_position(@cursor.row, old_col_c)
       end
+      move_line_row_change(-1)
     end
     @num_lines -= 1 if @num_lines > 1
     @num_chars -= old_length
@@ -166,7 +179,7 @@ class Buffer
       mark.exchange_point_and_mark(@point)
     else
       array.content[0] = @content.get_string(mark.location.row, mark.location.col, @point.col - mark.location.col)
-    end 
+    end
   end
 
   def store_select_region(mark, array)
@@ -178,10 +191,10 @@ class Buffer
   end
 
   def insert_evaluated_region_comment
-    @history.push(self.get_content)
+    # @history.push(self.get_content)
     store_select(@evaluate_mark, @evaluate)
 
-    row = @cursor.row
+    row = @point.row
     line = @content.get_line(row)
     # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
     line = $1 if line =~ /\A(.*) # => .+\z/
@@ -205,8 +218,8 @@ class Buffer
   end
 
   def insert_evaluated_line_comment
-    @history.push(self.get_content)
-    row = @cursor.row
+    # @history.push(self.get_content)
+    row = @point.row
     line = @content.get_line(row)
     # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
     line = $1 if line =~ /\A(.*) # => .+\z/
@@ -219,27 +232,43 @@ class Buffer
     @content.content[row] = line
   end
 
+  def set_window(window)
+    return false unless window.is_a?(Window)
+    @window = window
+  end
+
+  def resize_window
+    return if @window.nil?
+    @window.resize
+  end
+
   private
   def delete_char(count)
-    @history.push(self.get_content)
+    # @history.push(self.get_content)
     old_line   = @content.get_line(@point.row)
     old_length = old_line.length
     @content.delete_char(count, @point.row, @point.col)
-    new_line   = @content.get_line(@point.row)
-    diff = new_line.length - old_length
+    new_line = @content.get_line(@point.row)
+    diff     = new_line.length - old_length
     @num_chars += diff
+    # move at the pre-change line
+    @content.replace_line(@point.row, old_line)
     move_point(diff)
+    @content.replace_line(@point.row, new_line)
     @is_modified = true
     true
   end
 
   def merge_line(count)
     return if (@point.row + count) < 0
-    @history.push(self.get_content)
-    col = @content.get_line(@point.row + count).length
+    # @history.push(self.get_content)
+    prev_row  = @point.row - 1
+    prev_line = @content.get_line(prev_row)
+    last_col  = @content.convert_col_point_into_cursor(prev_row, prev_line.length, @window.cols)
+    @point.set_point(@point.row, prev_line.length)
+    @cursor.set_position(@cursor.row, (last_col % @window.cols))
     @content.merge_line(count, @point.row)
-    @point.set_point((@point.row + count), col)
-    @cursor.set_position((@cursor.row + count), @content.convert_point_to_cursor(@point.row, col))
+    move_line(-1, false)
     @is_modified = true
     true
   end
@@ -288,7 +317,7 @@ class Buffer
   end
 
   def paste_string
-    @history.push(self.get_content)
+    # @history.push(self.get_content)
     unless @clipboard.content.size != 1
       @content.insert_string(@clipboard.get_line(0), @point.row, @point.col)
       @point.move_point(@clipboard.get_line(0).length)
@@ -349,6 +378,166 @@ class Buffer
     @file.is_changed?
   end
 
+  def move_point_one(count = 1)
+    col_p = @point.col + count
+    line  = @content.get_line(@point.row)
+    # move next row
+    return move_point_to_next_row if col_p > line.length
+    # move previous row
+    return move_point_to_prev_row if col_p < 0
+    # move col
+    @point.move_point(count)
+    col_c       = @content.convert_col_point_into_cursor(@point.row, @point.col, @window.cols)
+    turn_before = (@cursor.full_col / @window.cols).floor
+    turn_after  = (col_c / @window.cols).floor
+    @cursor.full_col = col_c
+    if turn_before != turn_after
+      row_c = move_point_turn_change(count)
+    else
+      row_c = @cursor.row
+    end
+    @cursor.set_position(row_c, (col_c % @window.cols))
+    col_p
+  end
+
+  def move_point_to_next_row
+    return @point.row if (@point.row + 1) == @content.rows
+    @point.set_point(@point.row, 0)
+    @cursor.set_position(@cursor.row, 0)
+    move_line(1, false)
+    @point.row
+  end
+
+  def move_point_to_prev_row
+    return @point.row if @point.row == 0
+    prev_row  = @point.row - 1
+    prev_line = @content.get_line(prev_row)
+    last_col  = @content.convert_col_point_into_cursor(prev_row, prev_line.length, @window.cols)
+    @point.set_point(@point.row, prev_line.length)
+    @cursor.set_position(@cursor.row, (last_col % @window.cols))
+    move_line(-1, false)
+    @point.row
+  end
+
+  def move_point_turn_change(count)
+    step = (count > 0) ? 1 : -1
+    @cursor.turn     = @cursor.turn + step
+    @cursor.full_row = @cursor.full_row + step
+    scrolled = scroll_window_line(step)
+    row_c    = scrolled ? @cursor.row : @cursor.row + step
+  end
+
+  def move_line_one(count = 1, is_hold = true)
+    current_line = @content.get_line(@point.row)
+    length       = current_line.nil? ? 0 : current_line.length
+    if count > 0
+      # move down
+      last_col = @content.convert_col_point_into_cursor(@point.row, length, @window.cols)
+      if @point.row == (@content.rows - 1)
+        return @point.row if @cursor.turn == (last_col / @window.cols).floor
+      end
+      if is_hold
+        @point.col  = @point.hold_col
+        @cursor.col = @cursor.hold_col
+      end
+      cols = @window.cols * (@cursor.turn + 1)
+      if last_col >= cols
+        move_line_turn_change(count, length)
+      else
+        move_line_row_change(count)
+      end
+    end
+    if count < 0
+      # move up
+      return @point.row if (@cursor.full_row + count) < 0
+      if is_hold
+        @point.col  = @point.hold_col
+        @cursor.col = @cursor.hold_col
+      end
+      if @cursor.turn > 0
+        move_line_turn_change(count, length)
+      else
+        move_line_row_change(count)
+      end
+    end
+    scroll_window_line(count) if count != 0
+    @point.row
+  end
+
+  def move_point_turn_change(count)
+    step = (count > 0) ? 1 : -1
+    @cursor.full_row = @cursor.full_row + step
+    @cursor.turn     = @cursor.turn + step
+    scrolled = scroll_window_line(step)
+    row_c    = scrolled ? @cursor.row : @cursor.row + step
+  end
+
+  def move_line_row_change(count)
+    step   = (count > 0) ? 1 : -1
+    row_p  = @point.row + step
+    line   = @content.get_line(row_p)
+    length = line.nil? ? 0 : line.length
+    turn   = 0
+    if count > 0
+      col_c = @content.adjust_cursor_col(row_p, @cursor.col, @window.cols)
+    else
+      last_col = @content.convert_col_point_into_cursor(row_p, length, @window.cols)
+      turn     = (last_col / @window.cols).floor unless last_col.nil?
+      col_c    = @content.adjust_cursor_col(row_p, (@cursor.col + (@window.cols * turn)), @window.cols)
+    end
+    @cursor.full_row = @cursor.full_row + step
+    @cursor.full_col = col_c
+    @cursor.turn     = turn
+    @cursor.set_position((@cursor.row + step), (col_c % @window.cols))
+    @point.set_point(row_p, @content.convert_col_cursor_into_point(row_p, length, col_c, @window.cols))
+  end
+
+  def move_line_turn_change(count, length)
+    step  = (count > 0) ? 1 : -1
+    turn  = @cursor.turn + step
+    col_c = @content.adjust_cursor_col(@point.row, (@cursor.col + (@window.cols * turn)), @window.cols)
+    @cursor.full_row = @cursor.full_row + step
+    @cursor.full_col = col_c
+    @cursor.turn     = turn
+    @cursor.set_position((@cursor.row + step), (col_c % @window.cols))
+    @point.set_point(@point.row, @content.convert_col_cursor_into_point(@point.row, length, col_c, @window.cols))
+  end
+
+  def scroll_window_line(count)
+    return if @window.nil?
+    if count > 0
+      # scroll to bottom
+      if @cursor.full_row >= @window.rows
+        # get start point
+        start_row  = @point.row - 1
+        start_turn = 0
+        rows       = @cursor.turn + 1
+        while rows < @window.rows
+          line   = @content.get_line(start_row)
+          length = line.nil? ? 0 : line.length
+          step   = (length / @window.rows).floor
+          rows   = rows + step + 1
+          if rows > @window.rows
+            start_turn = rows - @window.rows
+          else
+            start_row -= 1
+          end
+        end
+        start_row += 1 if start_turn == 0
+      else
+        start_row  = 0
+        start_turn = 0
+      end
+      scrolled = @window.scroll_line(start_row, start_turn, count)
+      @cursor.set_position(@window.rows - 1, @cursor.col) if scrolled
+    else
+      # scroll to up
+      scrolled = @window.scroll_line(@point.row, @cursor.turn, count)
+      @cursor.set_position(0, @cursor.col) if scrolled
+    end
+    scrolled
+  end
+
   def undo
     temp = @history.pop
     if temp == nil then; return end
@@ -366,5 +555,4 @@ class Buffer
     write_file
     @display.echo.print_message("Save \"" + @file_name + "\"")
   end
-
 end

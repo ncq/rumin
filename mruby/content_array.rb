@@ -1,4 +1,5 @@
 # coding: utf-8
+require './mruby/buffer'
 require './mruby/content'
 require './mruby/utf8_util'
 class ContentArray < Content
@@ -59,11 +60,17 @@ class ContentArray < Content
   end
 
   def delete_line(row)
-    return false if row > @content.size
+    return false if row >= @content.size
     line1 = @content[0, row]
     line2 = @content[(row + 1), (@content.size - row - 1)]
     @content = line1 + line2
     @content = [''] if @content.size == 0
+    true
+  end
+
+  def replace_line(row, line)
+    return false if row >= @content.size
+    @content[row] = line
     true
   end
 
@@ -100,35 +107,30 @@ class ContentArray < Content
     content_1 = @content[0, (new_row + 1)]
     content_2 = @content[(row + 1), (@content.size - content_1.size + count)]
     @content = content_1 + content_2
+    @content
   end
 
-  def convert_point_to_cursor(row, col)
-    converter = create_point_cursor_converter(row, col, true)
+  def convert_col_point_into_cursor(row, col, cols)
+    converter = create_point_cursor_col_converter(row, col, cols, true)
     return nil if converter.nil?
     converter[col]
   end
 
-  def convert_cursor_to_point(row, col, cursor_col)
-    converter = create_point_cursor_converter(row, col, false)
+  def convert_col_cursor_into_point(row, col, cursor_col, cols)
+    converter = create_point_cursor_col_converter(row, col, cols, false)
     return nil if converter.nil?
     converter[cursor_col]
   end
 
-  def adjust_cursor_col(row, col)
+  def adjust_cursor_col(row, col, cols)
     line = get_line(row)
     return 0 if line.nil?
     len  = line.length
     return 0 if len == 0
-    converter = create_point_cursor_converter(row, len, true)
-    if col > converter[len - 1]
-      if Utf8Util::full_width?(line[-1])
-        return (converter[len - 1] + 2)
-      else
-        return (converter[len - 1] + 1)
-      end
-    end
-    return converter.include?(col) ? col : col - 1
-    col
+    converter = create_point_cursor_col_converter(row, len, cols, false)
+    last_col  = converter.max[0]
+    return last_col if col > last_col
+    converter.key?(col) ? col : col - 1
   end
 
   private
@@ -141,10 +143,12 @@ class ContentArray < Content
     line   = line_1 + str + line_2
   end
 
-  def create_point_cursor_converter(row, col, to_cursor)
-    converter = []
-    line = get_line(row)
-    cur  = 0
+  def create_point_cursor_col_converter(row, col, cols, to_cursor)
+    converter = {}
+    cols      = cols - 1
+    line      = get_line(row)
+    cur       = 0
+    cur_line  = 0
     return nil if line.nil?
     for i in 0...col do
       return nil if line[i].nil?
@@ -153,11 +157,14 @@ class ContentArray < Content
       else
         converter[cur] = i
       end
-      if Utf8Util::full_width?(line[i])
-        cur += 2
-      else
+      step = Utf8Util::full_width?(line[i]) ? 2 : 1
+      cur      += step
+      cur_line += step
+      # adjust point if last character of line is a double-byte
+      if cur_line == cols && !line[i + 1].nil? && Utf8Util::full_width?(line[i + 1])
         cur += 1
       end
+      cur_line = 0 if cur_line >= cols
     end
     if to_cursor
       converter[col] = cur
@@ -166,5 +173,4 @@ class ContentArray < Content
     end
     converter
   end
-
 end

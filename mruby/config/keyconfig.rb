@@ -93,4 +93,6 @@ bind %w(ctrl-x ctrl-x) do |b|
   Qiitan::Client.new.post(b)
 end
 
-
+bind %w(resize) do |b|
+  b.resize_window
+end

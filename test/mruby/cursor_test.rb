@@ -5,6 +5,10 @@ class CursorTest < MTest::Unit::TestCase
     cursor = Cursor.new
     assert_equal(0, cursor.row)
     assert_equal(0, cursor.col)
+    assert_equal(0, cursor.turn)
+    assert_equal(0, cursor.full_row)
+    assert_equal(0, cursor.full_col)
+    assert_equal(0, cursor.hold_col)
   end
 
   def test_set_position

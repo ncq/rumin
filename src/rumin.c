@@ -36,9 +36,9 @@ int main() {
     mrb_value editor_instance = mrb_funcall(mrb, rumin_instance, "editor", 0);
     // Bufferインスタンスの取得
     mrb_value buffer_instance = mrb_funcall(mrb, editor_instance, "current_buffer", 0);
-
     /* Displayインスタンスの取得 */
-    mrb_value display_instance = mrb_funcall(mrb, buffer_instance, "display", 0);
+    mrb_value display_instance = mrb_funcall(mrb, editor_instance, "display", 0);
+    mrb_funcall(mrb, buffer_instance, "set_display", 1, display_instance);
     mrb_value window = mrb_funcall(mrb, display_instance, "create_window", 1, buffer_instance);
 
     // Commandインスタンスの初期化
@@ -47,7 +47,7 @@ int main() {
     struct RClass *command = mrb_class_get(mrb, "Command");
     mrb_value command_value = mrb_obj_value(command);
     mrb_value command_instance = mrb_funcall(mrb, command_value, "new", 0);
-    
+
     mrb_value keys = mrb_ary_new(mrb);
     mrb_value ret;
     while(1) {
