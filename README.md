@@ -9,7 +9,7 @@ you can use plug-in's or create a plug-in on your self.
 
 ## Let's try the rumin with Ubuntu 14.04!
 
-    git clone git@github.com:ncq/rumin
+    git clone https://github.com/ncq/rumin.git
     cd ./rumin
     sh install-to-ubuntu.sh
 
