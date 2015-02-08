@@ -7,6 +7,12 @@ We designed rumin instead of emacs and vim.
 So, if you want to writing text easily, 
 you can use plug-in's or create a plug-in on your self.
 
+## Let's try the rumin with Ubuntu 14.04!
+
+    git clone git@github.com:ncq/rumin
+    cd ./rumin
+    sh install-to-ubuntu.sh
+
 ## Enviroments
 We are now developing on OS X 10.0 and Ubuntu 14.04 LTS.
 If you using OS X 10.0, we suggest to install ruby greater than 1.9 with rbenv.
@@ -14,7 +20,7 @@ Or if you using Ubuntu 14.04 LTS, you have to install ruby-dev with apt.
 
 ## Requirements
 
-    clang
+    gcc
     rake
     bison
     ncurses (On Ubuntu, libncurses5-dev and libncursesw5-dev. On OS X, please install ncurses with --enable-widec opton.)
