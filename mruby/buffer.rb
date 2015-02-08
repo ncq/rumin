@@ -88,8 +88,13 @@ class Buffer
 
   def delete(count)
     # @history.push(self.get_content)
-    count = count.to_i
+    count  = count.to_i
+    line   = @content.get_line(@point.row)
+    length = line.nil? ? 0 : line.length
     if count < 0 && (@point.col - count.abs) < 0
+      merge_line(-1)
+    elsif count > 0 && (@point.col + count) > length
+      move_point(1)
       merge_line(-1)
     else
       delete_char(count)
@@ -262,22 +267,21 @@ class Buffer
     @num_chars += diff
     # move at the pre-change line
     @content.replace_line(@point.row, old_line)
-    move_point(diff)
+    move_point(diff) if count < 0
     @content.replace_line(@point.row, new_line)
     @is_modified = true
     true
   end
 
   def merge_line(count)
+    # implement minus direction only
+    return if count > 0
     return if (@point.row + count) < 0
     # @history.push(self.get_content)
-    prev_row  = @point.row - 1
-    prev_line = @content.get_line(prev_row)
-    last_col  = @content.convert_col_point_into_cursor(prev_row, prev_line.length, @window.cols)
-    @point.set_point(@point.row, prev_line.length)
-    @cursor.set_position(@cursor.row, (last_col % @window.cols))
+    line   = @content.get_line(@point.row)
+    length = line.nil? ? 0 : line.length
     @content.merge_line(count, @point.row)
-    move_line(-1, false)
+    move_point(((length + 1) * -1))
     @is_modified = true
     true
   end
@@ -388,10 +392,11 @@ class Buffer
   end
 
   def move_point_one(count = 1)
-    col_p = @point.col + count
-    line  = @content.get_line(@point.row)
+    col_p  = @point.col + count
+    line   = @content.get_line(@point.row)
+    length = line.nil? ? 0 : line.length
     # move next row
-    return move_point_to_next_row if col_p > line.length
+    return move_point_to_next_row if col_p > length
     # move previous row
     return move_point_to_prev_row if col_p < 0
     # move col
