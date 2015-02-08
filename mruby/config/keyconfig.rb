@@ -73,8 +73,7 @@ bind %w(ctrl-x ctrl-s) do |b|
 end
 
 bind %w(ctrl-d) do |b|
-  b.move_point 1
-  b.delete(-1)
+  b.delete(1)
 end
 
 bind %w(ctrl-x ctrl-e) do |b|

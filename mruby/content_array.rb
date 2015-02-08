@@ -84,6 +84,8 @@ class ContentArray < Content
   def replace_line(row, line)
     return false if row >= @content.size
     @content[row] = line
+    @color_map.delete_line(row)
+    @color_map.add(0, row, 0, row, (line.length - 1))
     true
   end
 
@@ -118,7 +120,7 @@ class ContentArray < Content
 
   def merge_line(count, row)
     before_change
-    # とりあえずマイナス方向のみ
+    # implement minus direction only
     return if count > 0
     new_row = row + count
     return if new_row < 0
