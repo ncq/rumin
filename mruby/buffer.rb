@@ -201,8 +201,9 @@ class Buffer
     # @history.push(self.get_content)
     store_select(@evaluate_mark, @evaluate)
 
-    row = @point.row
-    line = @content.get_line(row)
+    row    = @point.row
+    line   = @content.get_line(row)
+    before = line.nil? ? 0 : line.length
     # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
     line = $1 if line =~ /\A(.*) # => .+\z/
 
@@ -211,7 +212,9 @@ class Buffer
     rescue => e
       line = "#{line} # => error: #{e.message}"
     end
-    @content.content[row] = line
+    @content.replace_line(row, line)
+    @num_chars += line.length - before
+    line
   end
 
   def eval_content
@@ -226,17 +229,20 @@ class Buffer
 
   def insert_evaluated_line_comment
     # @history.push(self.get_content)
-    row = @point.row
+    row  = @point.row
     line = @content.get_line(row)
     # TODO: 文字列が" # => aaa"みたいな感じだとバグるから修正
-    line = $1 if line =~ /\A(.*) # => .+\z/
+    line   = $1 if line =~ /\A(.*) # => .+\z/
+    before = line.nil? ? 0 : line.length
 
     begin
       line = "#{line} # => #{eval(line).inspect}"
     rescue => e
       line = "#{line} # => error: #{e.message}"
     end
-    @content.content[row] = line
+    @content.replace_line(row, line)
+    @num_chars += line.length - before
+    line
   end
 
   def search_forward(type)
@@ -383,11 +389,17 @@ class Buffer
     if @file != nil then
       i = 0
       @contents = @file.read
+      size      = @contents.size
+      @content.delete_all
       @contents.each do |line|
         line.slice!("\n")
-        @content.content[i] = line
+        @content.insert_string(line, i, 0)
+        @content.change_line(i, line.length) if (i + 1) < size
+        @num_chars += line.length
         i += 1
       end
+      @num_lines = size
+      @is_modified = false
       return true
     else
       return false
@@ -567,8 +579,16 @@ class Buffer
 
   def open_file
     set_file_name(@display.echo.get_parameter("Open:"))
-    read_file
-    @display.echo.print_message("Open \"" + @file_name + "\"")
+    if read_file
+      @point.set_point(0, 0)
+      @point.hold_col = 0
+      @cursor.set_position(0, 0)
+      @cursor.turn     = 0
+      @cursor.full_row = 0
+      @cursor.full_col = 0
+      @cursor.hold_col = 0
+      @display.echo.print_message("Open \"" + @file_name + "\"")
+    end
   end
 
   def save_file

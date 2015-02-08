@@ -118,6 +118,11 @@ class ContentArray < Content
     @content[row]
   end
 
+  def delete_all
+    @content   = ['']
+    @color_map = ColorMap.new(@content)
+  end
+
   def merge_line(count, row)
     before_change
     # implement minus direction only
