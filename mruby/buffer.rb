@@ -95,7 +95,7 @@ class Buffer
       merge_line(-1)
     elsif count > 0 && (@point.col + count) > length
       old_row = @point.row
-      move_point(1)
+      move_point(count.abs)
       merge_line(-1) if @point.row != old_row
     else
       delete_char(count)
