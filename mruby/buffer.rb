@@ -94,8 +94,9 @@ class Buffer
     if count < 0 && (@point.col - count.abs) < 0
       merge_line(-1)
     elsif count > 0 && (@point.col + count) > length
+      old_row = @point.row
       move_point(1)
-      merge_line(-1)
+      merge_line(-1) if @point.row != old_row
     else
       delete_char(count)
     end
@@ -266,9 +267,11 @@ class Buffer
     diff     = new_line.length - old_length
     @num_chars += diff
     # move at the pre-change line
-    @content.replace_line(@point.row, old_line)
-    move_point(diff) if count < 0
-    @content.replace_line(@point.row, new_line)
+    if count < 0
+      @content.replace_line(@point.row, old_line)
+      move_point(diff)
+      @content.replace_line(@point.row, new_line)
+    end
     @is_modified = true
     true
   end
@@ -278,10 +281,14 @@ class Buffer
     return if count > 0
     return if (@point.row + count) < 0
     # @history.push(self.get_content)
-    line   = @content.get_line(@point.row)
-    length = line.nil? ? 0 : line.length
+    total = 0
+    count.abs.times do |i|
+      line   = @content.get_line(@point.row + i)
+      length = line.nil? ? 0 : line.length
+      total  += length
+    end
     @content.merge_line(count, @point.row)
-    move_point(((length + 1) * -1))
+    move_point(((total + count.abs) * -1))
     @is_modified = true
     true
   end
