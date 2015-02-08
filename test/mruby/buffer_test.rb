@@ -450,7 +450,6 @@ class BufferTest < MTest::Unit::TestCase
   def test_paste_string2
     buffer = create_buffer
     buffer.insert_string('abcd')
-    buffer.insert_string('abcd')
     buffer.change_line
     buffer.copy_mark.set_location(0, 1)
     buffer.copy
