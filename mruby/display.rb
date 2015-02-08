@@ -56,11 +56,11 @@ class Display
           col_c  = 0
           col_p  = 0
           str    = ""
-          colors = color_map[row_p]
+          colors = color_map[row_p] unless color_map[row_p].nil?
           buffer.cursor.set_position(row_c, 0)
           line.each_char do |char|
             next if row_c == window.rows
-            color = colors[col_p]
+            color = (colors.nil? || colors[col_p].nil?) ? 0 : colors[col_p]
             if color != keep_color
               # change color
               insert_string(str)

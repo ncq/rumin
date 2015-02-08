@@ -119,6 +119,13 @@ class ContentArrayTest < MTest::Unit::TestCase
     assert_equal(['abc', 'def', 'ghi'], content.content)
   end
 
+  def test_delete_all
+    content = ContentArray.new(['abc', 'def'])
+    content.delete_all
+    assert_equal([''], content.content)
+    assert_equal([[]], content.get_color_map)
+  end
+
   def test_replace_line
     content = ContentArray.new(['abc', 'def'])
     assert_equal(true, content.replace_line(1, 'ghi'))
