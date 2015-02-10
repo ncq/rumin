@@ -13,6 +13,9 @@ you can use plug-in's or create a plug-in on your self.
     cd ./rumin
     sh install-to-ubuntu.sh
 
+## Default keybind
+[Go to Default keybind](https://github.com/ncq/rumin/wiki/default-keybind)
+
 ## Enviroments
 We are now developing on OS X 10.0 and Ubuntu 14.04 LTS.
 If you using OS X 10.0, we suggest to install ruby greater than 1.9 with rbenv.
