@@ -1,3 +1,5 @@
+require "curses"
+
 class Echo
   attr_accessor :output
   def initialize

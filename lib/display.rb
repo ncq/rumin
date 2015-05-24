@@ -1,3 +1,4 @@
+require "curses"
 require './mruby/window'
 require './mruby/echo_line'
 require './mruby/screen'

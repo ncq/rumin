@@ -1,3 +1,4 @@
+require "curses"
 require './mruby/buffer'
 
 class Window

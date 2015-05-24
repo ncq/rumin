@@ -1,3 +1,5 @@
+require "curses"
+
 class Cursor
   attr_accessor :row, :col, :turn, :full_col, :full_row, :hold_col
   def initialize

@@ -1,3 +1,5 @@
+require "curses"
+
 class Screen
   attr_reader :rows, :cols
   def initialize
