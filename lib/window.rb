@@ -1,5 +1,5 @@
 require "curses"
-require './mruby/buffer'
+require 'buffer'
 
 class Window
   # echo-area size

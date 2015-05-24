@@ -1,17 +1,17 @@
 # coding: utf-8
 
 class Buffer
-  require './mruby/point'
-  require './mruby/content'
-  require './mruby/content_array'
-  require './mruby/cursor'
-  require './mruby/mark'
-  require './mruby/file'
-  require './mruby/display'
-  require './mruby/history'
-  require './mruby/buffer/insert_char'
-  require './mruby/buffer/change_line'
-  require './mruby/window'
+  require 'point'
+  require 'content'
+  require 'content_array'
+  require 'cursor'
+  require 'mark'
+  require 'file'
+  require 'display'
+  require 'history'
+  require 'buffer/insert_char'
+  require 'buffer/change_line'
+  require 'window'
 
   attr_accessor :name, :is_modified, :num_chars
   attr_reader :start, :end, :file_name, :content, :num_lines,
@@ -360,7 +360,7 @@ class Buffer
       end
       if @clipboard.get_line(@clipboard.rows - 1) == "\n"
         change_line
-      else 
+      else
         @content.insert_string(@clipboard.get_line(@clipboard.rows - 1), @point.row, @point.col)
         @point.move_point(@clipboard.get_line(@clipboard.rows - 1).length)
       end

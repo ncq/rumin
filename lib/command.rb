@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 class Command
-  require './mruby/utf8_util'
-  require './mruby/keybind'
-  require './mruby/keymap'
+  require 'utf8_util'
+  require 'keybind'
+  require 'keymap'
   def initialize
     load_command
-    keymap = Keymap.new('./mruby/config/keymap.yml')
-    @keybind = Keybind.new('./mruby/config/keyconfig.rb', keymap)
+    keymap = Keymap.new('./config/keymap.yml')
+    @keybind = Keybind.new('./config/keyconfig.rb', keymap)
   end
 
   def evaluate(inputs, buffer)
@@ -27,12 +27,18 @@ class Command
   # commnad配下まとめてrequire
   def load_command
     # TODO: 再帰的に
-    paths = ['./mruby/command/', './mruby/command/plugin/']
+    paths = ['./command', './command/plugin']
     paths.each do |path|
+      pathname = Pathname.new(path)
+
+      puts "!!!"
+      puts pathname.realdirpath
+      puts "!!!"
+
       # plugins配下をrequire
-      Dir.foreach(path) do |file|
+      Dir.foreach(pathname) do |file|
         if file =~ /\.rb\z/
-          require path + file
+          require pathname + file
         end
       end
     end

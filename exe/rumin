@@ -3,7 +3,7 @@
 require "rubygems"
 require "commander"
 require "commander/import"
-require "rumin"
+require 'bootstrap'
 
 Commander.configure do
   program :name, "rumin"
@@ -17,15 +17,4 @@ Commander.configure do
       rumin = Rumin.new
     end
   end
-
-=begin
-  command :edit do |c|
-    c.syntax = "rumin [filename]"
-    c.description = "Edit an existing file."
-    d.action do |args, options|
-      rumin = Rumin.new
-      rumin.edit args[0]
-    end
-  end
-=end
 end

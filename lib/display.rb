@@ -1,20 +1,23 @@
 require "curses"
-require './mruby/window'
-require './mruby/echo_line'
-require './mruby/screen'
+require 'window'
+require 'echo_line'
+require 'screen'
 
 class Display
   attr_reader :screen
   attr_accessor :echo
   def initialize
     @window_list = []
-    Curses.initscr
+    Curses.init_screen
     Curses.cbreak
     Curses.noecho
-    Curses.keypad(true)
+    # TODO Method keypad() doesn't exist in Curses.
+    # Curses.keypad(true)
     @screen = Screen.new
-    Curses.echoline((@screen.rows - 1), 3)
-    @echo = Echo.new
+    # TODO Method echoline() is originately implemented in
+    # mruby-curses. Then it must be moved to Screen class.
+    # Curses.echoline((@screen.rows - 1), 3)
+    # @echo = Echo.new
     Curses.start_color()
     Curses.init_pair(1, Curses::COLOR_BLUE, Curses::COLOR_WHITE)
     Curses.init_pair(2, Curses::COLOR_WHITE, Curses::COLOR_BLUE)
@@ -102,7 +105,8 @@ class Display
       Curses.coloroff(keep_color) if keep_color > 0
       buffer.cursor.set_position(current_row, current_col)
     end
-    @echo.print
+    # TODO It is related with echoline()
+    # @echo.print
   end
 
   def insert_string(str)

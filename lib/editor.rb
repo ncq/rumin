@@ -1,7 +1,7 @@
 class Editor
-  require './mruby/list'
-  require './mruby/buffer'
-  require './mruby/display'
+  require 'list'
+  require 'buffer'
+  require 'display'
 
   attr_reader :current_buffer, :display
 

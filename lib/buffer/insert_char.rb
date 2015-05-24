@@ -1,5 +1,5 @@
-require './mruby/i_command'
-require './mruby/point'
+require 'i_command'
+require 'point'
 
 class InsertChar < ICommand
   def initialize(buffer, content, point, cursor)

@@ -3,12 +3,12 @@ require "curses"
 class Screen
   attr_reader :rows, :cols
   def initialize
-    @rows = Curses::screen_rows
-    @cols = Curses::screen_cols
+    @rows = Curses.lines
+    @cols = Curses.cols
   end
 
   def resize
-    @rows = Curses::screen_rows
-    @cols = Curses::screen_cols
+    @rows = Curses.lines
+    @cols = Curses.cols
   end
 end

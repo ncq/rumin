@@ -1,5 +1,5 @@
 class Mark
-  require './mruby/point'
+  require 'point'
 
   attr_accessor :name, :location
   #attr_reader :location
@@ -24,7 +24,7 @@ class Mark
       return false if point_at_mark?(point)
       return false if @location.col < point.col
       return true
-    else 
+    else
       return false if @location.row < point.row
       return true
     end
@@ -52,4 +52,3 @@ class Mark
   end
 
 end
-

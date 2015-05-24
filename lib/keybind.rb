@@ -1,5 +1,5 @@
 class Keybind
-	require 'mruby/bind'
+	require 'bind'
 
   def initialize(dsl_path, keymap)
     @keymap = keymap

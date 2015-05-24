@@ -1,8 +1,8 @@
 # coding: utf-8
-require './mruby/buffer'
-require './mruby/content'
-require './mruby/utf8_util'
-require './mruby/color_map'
+require 'buffer'
+require 'content'
+require 'utf8_util'
+require 'color_map'
 class ContentArray < Content
   attr_reader :content, :color_map, :last_match
 

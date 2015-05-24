@@ -6,8 +6,8 @@ require 'rumin/version'
 Gem::Specification.new do |spec|
   spec.name          = "rumin"
   spec.version       = Rumin::VERSION
-  spec.authors       = ["AIIT"]
-  spec.email         = ["a1321km@aiit.ac.jp"]
+  spec.authors       = ["Advanced Institute of Industrial Technology"]
+  spec.email         = ["kzhd15med3pub@gmail.com"]
 
   spec.summary       = %q{rumin is an extensible text editing platform implemented on Ruby.}
   spec.description   = %q{rumin is an extensible text editing platform implemented on Ruby. You can use rumin to writing text, source code and so on. We designed rumin instead of emacs and vim. So, if you want to writing text easily, you can use plug-in's or create a plug-in on your self.}
