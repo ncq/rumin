@@ -1,0 +1,31 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+require "commander"
+require "commander/import"
+require "rumin"
+
+Commander.configure do
+  program :name, "rumin"
+  program :version, "2.0alpha"
+  program :description, "text editor"
+
+  command :new do |c|
+    c.syntax = "rumin"
+    c.description = "Edit a new file."
+    c.action do |args, options|
+      rumin = Rumin.new
+    end
+  end
+
+=begin
+  command :edit do |c|
+    c.syntax = "rumin [filename]"
+    c.description = "Edit an existing file."
+    d.action do |args, options|
+      rumin = Rumin.new
+      rumin.edit args[0]
+    end
+  end
+=end
+end

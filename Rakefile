@@ -1,3 +1,4 @@
+require "bundler/gem_tasks"
 require 'yard'
 
 C_COMPILER = "gcc"
