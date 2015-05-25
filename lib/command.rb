@@ -5,8 +5,8 @@ class Command
   require 'keymap'
   def initialize
     load_command
-    keymap = Keymap.new('./config/keymap.yml')
-    @keybind = Keybind.new('./config/keyconfig.rb', keymap)
+    keymap = Keymap.new(File.expand_path('./config/keymap.yml', __FILE__))
+    @keybind = Keybind.new(File.expand_path('./config/keyconfig.rb', __FILE__), keymap)
   end
 
   def evaluate(inputs, buffer)
@@ -29,17 +29,8 @@ class Command
     # TODO: 再帰的に
     paths = ['./command', './command/plugin']
     paths.each do |path|
-      pathname = Pathname.new(path)
-
-      puts "!!!"
-      puts pathname.realdirpath
-      puts "!!!"
-
-      # plugins配下をrequire
-      Dir.foreach(pathname) do |file|
-        if file =~ /\.rb\z/
-          require pathname + file
-        end
+      Dir.glob(File.expand_path((path + "/*.rb"), __FILE__)).each do |file|
+        require file
       end
     end
   end
