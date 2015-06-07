@@ -26,6 +26,8 @@ class Bootstrap
     editor = Editor.new
     buffer = editor.current_buffer
     display = editor.display
+    buffer.set_display(display)
+    display.create_window(buffer)
 
     command = Command.new
 
