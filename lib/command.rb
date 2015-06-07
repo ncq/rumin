@@ -4,7 +4,7 @@ class Command
   require 'utf8_util'
   require 'keybind'
   require 'keymap'
-  
+
   def initialize
     load_command
     keymap = Keymap.new(File.expand_path('../config/keymap.yml', __FILE__))
@@ -21,7 +21,8 @@ class Command
     else
       # input character
       buffer.insert_char(input.chr)
-      buffer.display.echo.print_message(input.chr)
+      # TODO implement echo
+      # buffer.display.echo.print_message(input.chr)
       true
     end
   end
