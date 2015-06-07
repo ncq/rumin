@@ -30,8 +30,9 @@ class Keybind
   def key?(ascii_code)
     # @binds.key?(ascii2keyname(ascii_code))
 		@current ||= @binds
-		debug ascii_code
-		debug @current.key?(ascii2keyname(ascii_code))
+		# TODO implemt debug method.
+		# debug ascii_code
+		# debug @current.key?(ascii2keyname(ascii_code))
 		@current.key?(ascii2keyname(ascii_code))
   end
 

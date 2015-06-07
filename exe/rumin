@@ -7,14 +7,20 @@ require 'bootstrap'
 
 Commander.configure do
   program :name, "rumin"
-  program :version, "2.0alpha"
+  program :version, "2.0"
   program :description, "text editor"
 
-  command :new do |c|
+  default_command :run
+
+  command :run do |c|
     c.syntax = "rumin"
     c.description = "Edit a new file."
-    c.action do |args, options|
-      rumin = Rumin.new
-    end
+
+    # TODO 起動時にファイル名などの引数を取れるようにする
+    # c.action do |args, options|
+    # end
   end
 end
+
+# CommanderのModular style
+Bootstrap.new.run

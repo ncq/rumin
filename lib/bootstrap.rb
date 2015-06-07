@@ -4,46 +4,45 @@ require "curses"
 require "editor"
 require "command"
 
-module Rumin
-  class Application
-    module Bootstrap
-      editor = Editor.new
-      buffer = editor.current_buffer
-      display = editor.display
+class Bootstrap
+  def input_key(keys)
+    key = Curses.getch.ord
+    keys.clear
+    keys.push(key)
 
-      command = Command.new
+    if key >= 192 && key <= 223 then
+      keys.push Curses.getch
+    elsif key >= 224 && key <= 239 then
+      keys.push Curses.getch
+      keys.push Curses.getch
+    elsif key >= 240 && key <= 255 then
+      keys.push Curses.getch
+      keys.push Curses.getch
+      keys.push Curses.getch
+    end
+  end
 
-      keys = Array.new
-      ret = 1
+  def run
+    editor = Editor.new
+    buffer = editor.current_buffer
+    display = editor.display
 
-      while true do
-        input_key keys
-        ret = command.evaluate buffer
+    command = Command.new
 
-        if ret == 0 then
-          break
-        end
+    keys = Array.new
+    ret = 1
 
-        display.redisplay
+    while true do
+      input_key keys
+      ret = command.evaluate(keys, buffer)
+
+      if ret == 0 then
+        break
       end
 
-      display.finish
+      display.redisplay
     end
 
-    def input_key(keys)
-      key = Curses.getch
-      keys.clear
-      keys.push(key)
-      if key >= 192 && key <= 223 then
-        keys.push Curses.getch
-      elsif key >= 224 && key <= 239 then
-        keys.push Curses.getch
-        keys.push Curses.getch
-      elsif key >= 240 && key <= 255 then
-        keys.push Curses.getch
-        keys.push Curses.getch
-        keys.push Curses.getch
-      end
-    end
+    display.finish
   end
 end
