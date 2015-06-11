@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ncq/rumin.svg?branch=master)](https://travis-ci.org/ncq/rumin)
+[![Build Status](https://travis-ci.org/ncq/rumin.svg?branch=2.0.alpha)](https://travis-ci.org/ncq/rumin)
 
 ## What's rumin
 rumin is an extensible text editing platform implemented on Ruby.
